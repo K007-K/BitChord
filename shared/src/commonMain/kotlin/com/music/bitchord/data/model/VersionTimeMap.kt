@@ -46,3 +46,4 @@ class VersionTimeMap(segments: List<Segment>) {
 
 /** The other version of a track, as YouTube Music pairs it, and how the two line up. */
 data class VersionPair(val song: Song, val timeMap: VersionTimeMap?)
+

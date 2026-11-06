@@ -31,3 +31,4 @@ object JamInvite {
 
     fun url(code: String): String = "$ORIGIN/invite/${code.uppercase()}"
 }
+

@@ -17,3 +17,4 @@ val Song.isMatchPending: Boolean get() = videoId.startsWith(SPOTIFY_PENDING_PREF
 val Song.isMatchMissing: Boolean get() = videoId.startsWith(SPOTIFY_MISSING_PREFIX)
 
 val Song.isUnresolvedSpotify: Boolean get() = isMatchPending || isMatchMissing
+

@@ -74,3 +74,4 @@ private fun longestIncreasingRun(values: List<Int>): List<Int> {
     }
     return result.reversed()
 }
+

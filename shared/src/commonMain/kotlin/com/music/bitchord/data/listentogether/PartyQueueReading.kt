@@ -41,3 +41,4 @@ fun partyUpcomingAfter(
     val at = partyQueueIndexOf(queue, playback, videoId)
     return if (at < 0) emptyList() else queue.items.subList(at + 1, queue.items.size)
 }
+
