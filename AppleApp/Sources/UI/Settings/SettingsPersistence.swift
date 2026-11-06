@@ -210,3 +210,30 @@ struct SettingsAdvancedPersist: ViewModifier {
             }
     }
 }
+
+struct SettingsContentPreferencesPersist: ViewModifier {
+    @Binding var hideRecents: Bool
+    @Binding var hideHomeVideos: Bool
+    @Binding var hideTopPicks: Bool
+    @Binding var hideHomeMoods: Bool
+    @Binding var squareVideoThumbnails: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: hideRecents) { _, value in
+                PlatformSettings.shared.putBoolean(key: "hide_recents", value: value)
+            }
+            .onChange(of: hideHomeVideos) { _, value in
+                PlatformSettings.shared.putBoolean(key: "hide_home_videos", value: value)
+            }
+            .onChange(of: hideTopPicks) { _, value in
+                PlatformSettings.shared.putBoolean(key: "hide_top_picks", value: value)
+            }
+            .onChange(of: hideHomeMoods) { _, value in
+                PlatformSettings.shared.putBoolean(key: "hide_home_moods", value: value)
+            }
+            .onChange(of: squareVideoThumbnails) { _, value in
+                PlatformSettings.shared.putBoolean(key: "square_video_thumbnails", value: value)
+            }
+    }
+}

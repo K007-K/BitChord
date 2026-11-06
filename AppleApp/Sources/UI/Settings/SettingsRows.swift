@@ -119,6 +119,7 @@ struct SettingsGlyph: View {
         case precision, loudness, sharedFolder, cpu, musicOnly, models
         case performance, refreshRate, folder, localMusic, filter
         case songStatus, align, mesh
+        case contentPreferences, hideRecents, hideVideos, topPicks, moods, squareThumbnails
     }
 
     var kind: Kind
@@ -247,6 +248,12 @@ struct SettingsGlyph: View {
         case .songStatus: "eye.slash.fill"
         case .align: "arrow.left.and.right"
         case .mesh: "paintbrush.pointed.fill"
+        case .contentPreferences: "slider.horizontal.3"
+        case .hideRecents: "clock.badge.xmark"
+        case .hideVideos: "video.slash.fill"
+        case .topPicks: "sparkles"
+        case .moods: "face.smiling.inverse"
+        case .squareThumbnails: "square.fill"
         }
     }
 

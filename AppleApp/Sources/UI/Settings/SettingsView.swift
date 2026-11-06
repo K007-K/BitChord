@@ -78,6 +78,11 @@ struct SettingsView: View {
     @State var stopBackground = PlatformSettings.shared.getBoolean(key: "stop_when_backgrounded", default: false)
     @State var stopMusicOnClose = PlatformSettings.shared.getBoolean(key: "stop_music_on_close", default: false)
     @State var hidePlayerStatusBar = PlatformSettings.shared.getBoolean(key: "hide_status_bar_in_player", default: false)
+    @State var hideRecents = PlatformSettings.shared.getBoolean(key: "hide_recents", default: false)
+    @State var hideHomeVideos = PlatformSettings.shared.getBoolean(key: "hide_home_videos", default: false)
+    @State var hideTopPicks = PlatformSettings.shared.getBoolean(key: "hide_top_picks", default: false)
+    @State var hideHomeMoods = PlatformSettings.shared.getBoolean(key: "hide_home_moods", default: false)
+    @State var squareVideoThumbnails = PlatformSettings.shared.getBoolean(key: "square_video_thumbnails", default: false)
     @State var showQueueHistory = PlatformSettings.shared.getBoolean(key: "show_queue_history", default: false)
     @State var artistSignatures = PlatformSettings.shared.getBoolean(key: "artist_signatures_enabled", default: true)
     @State var artistSignaturesWikimediaUrl = PlatformSettings.shared.getString(key: "artist_signatures_wikimedia_url", default: "")
@@ -259,6 +264,13 @@ struct SettingsView: View {
             replayGenres: $replayGenres,
             appModel: appModel
         ))
+        .modifier(SettingsContentPreferencesPersist(
+            hideRecents: $hideRecents,
+            hideHomeVideos: $hideHomeVideos,
+            hideTopPicks: $hideTopPicks,
+            hideHomeMoods: $hideHomeMoods,
+            squareVideoThumbnails: $squareVideoThumbnails
+        ))
         // Asked before the picker opens rather than after a file is chosen: the
         // thing being confirmed is that this device's own data is about to be
         // replaced, and that is true whichever file gets picked.
@@ -294,12 +306,13 @@ struct SettingsView: View {
     /// beside the section could only describe the section as a whole, which is how
     /// typing "flac" came to mean "show every row in Audio Quality".
     enum SettingsSection: String, CaseIterable, Identifiable {
-        case sources, audioQuality, playback, downloads, appearance, account, advanced, yourData, about
+        case contentPreferences, sources, audioQuality, playback, downloads, appearance, account, advanced, yourData, about
 
         var id: String { rawValue }
 
         var title: String {
             switch self {
+            case .contentPreferences: return "Content Preferences"
             case .sources: return "Sources"
             case .account: return "Account & Integrations"
             case .audioQuality: return "Sound & Quality"
@@ -314,6 +327,7 @@ struct SettingsView: View {
 
         var systemImage: String {
             switch self {
+            case .contentPreferences: return "slider.horizontal.3"
             case .sources: return "square.stack.3d.up"
             case .account: return "person.crop.circle"
             case .audioQuality: return "waveform"
@@ -415,6 +429,8 @@ struct SettingsView: View {
     func rows(for section: SettingsSection) -> [SettingsRowEntry] {
         var rows = SettingsRows(query: search, sectionTitle: section.title)
         switch section {
+        case .contentPreferences:
+            buildContentPreferencesRows(&rows)
         case .sources:
             rows.row("Sources", keywords: AudioSettingsItem.sources.keywords + ["addon", "source"]) {
                 PushLink { SourcesView() } label: { Label("Manage Sources", systemImage: "square.stack.3d.up") }
@@ -456,6 +472,8 @@ struct SettingsView: View {
     @ViewBuilder
     private func footer(for section: SettingsSection) -> some View {
         switch section {
+        case .contentPreferences:
+            Text("Content Preferences control what recommendations, video shelves and mood categories appear on your Home feed.")
         case .audioQuality:
             Text("Source Quality is the request. Current Output shows the decoded audio, device format and processing actually in use. Technical Audio & DAC contains output-specific options.")
         case .downloads:
@@ -549,6 +567,7 @@ struct SettingsView: View {
 
     private func sectionSummary(_ section: SettingsSection) -> String {
         switch section {
+        case .contentPreferences: return "Home feed shelves, media filtering and video appearance"
         case .sources:
             let state = SourceListState.shared
             guard state.hasLoaded else { return "Addons, source order, renewal and your libraries" }

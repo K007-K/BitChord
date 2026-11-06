@@ -15,6 +15,10 @@ struct HomeView: View {
     @Environment(PlaybackController.self) private var controller
     @Environment(AuthController.self) private var auth
     @Environment(ToastCenter.self) private var toast
+    @AppStorage("hide_recents") private var hideRecents = false
+    @AppStorage("hide_home_videos") private var hideHomeVideos = false
+    @AppStorage("hide_top_picks") private var hideTopPicks = false
+    @AppStorage("hide_home_moods") private var hideHomeMoods = false
     /// An externally owned scroll position, when the caller survives the view:
     /// the Mac sidebar recreates this view on every row switch, and the feed
     /// is a singleton while the reader's place in it was not (upstream hoists
@@ -77,26 +81,27 @@ struct HomeView: View {
                 buttonTitle: "Retry"
             ) { Task { await feed.load() } }
         case .loaded(let shelves):
+            let visibleShelves = filterShelves(shelves)
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
                     if !auth.signedIn {
                         SignInBanner { auth.loginPresented = true }
                     }
-                    ForEach(Array(shelves.enumerated()), id: \.element.id) { index, shelf in
+                    ForEach(Array(visibleShelves.enumerated()), id: \.element.id) { index, shelf in
                         if index == 0, isRecentsShelf(shelf) {
                             RecentShelf(shelf: shelf)
                                 .onAppear {
-                                    if shelf.id == shelves.last?.id { Task { await feed.loadMore() } }
+                                    if shelf.id == visibleShelves.last?.id { Task { await feed.loadMore() } }
                                 }
                         } else if index == 0 {
                             HeroShelf(shelf: shelf, preferTrack: true)
                                 .onAppear {
-                                    if shelf.id == shelves.last?.id { Task { await feed.loadMore() } }
+                                    if shelf.id == visibleShelves.last?.id { Task { await feed.loadMore() } }
                                 }
                         } else {
                             ShelfCarousel(shelf: shelf, preferTrack: true)
                                 .onAppear {
-                                    if shelf.id == shelves.last?.id {
+                                    if shelf.id == visibleShelves.last?.id {
                                         Task { await feed.loadMore() }
                                     }
                                 }
@@ -117,6 +122,27 @@ struct HomeView: View {
         // Accept the earlier Apple bridge title as well as upstream's canonical
         // "Recents" so the feed keeps the four-row treatment.
         return title == "recents" || title == "recently played"
+    }
+
+    /// Filters Home feed shelves based on user content preferences.
+    private func filterShelves(_ shelves: [FeedShelf]) -> [FeedShelf] {
+        shelves.filter { shelf in
+            let title = shelf.title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+            if hideRecents && isRecentsShelf(shelf) {
+                return false
+            }
+            if hideTopPicks && (title.contains("quick pick") || title.contains("top pick") || title.contains("mixed for you")) {
+                return false
+            }
+            if hideHomeMoods && (title.contains("mood") || title.contains("genre") || title.contains("moment") || title.contains("energy boost")) {
+                return false
+            }
+            if hideHomeVideos && (title.contains("music video") || title.contains("video")) {
+                return false
+            }
+            return true
+        }
     }
 }
 
