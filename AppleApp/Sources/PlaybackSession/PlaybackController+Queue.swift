@@ -252,6 +252,7 @@ extension PlaybackController {
     /// a remote-library row: those have no YouTube upload behind them at all.
     var canRevertToOriginal: Bool {
         guard let entry = current, let id = entry.videoId, entry.source.hasPrefix("yt:") else { return false }
+        if originalVideos[entry.id] != nil || songVersions[entry.id] != nil { return true }
         return !OriginalVersion.shared.isPinned(videoId: id) && !playingYouTubesOwn
     }
 
@@ -284,6 +285,34 @@ extension PlaybackController {
     /// rejected.
     func revertToOriginal() {
         guard let entry = current, let id = entry.videoId, entry.source.hasPrefix("yt:") else { return }
+
+        // Restoring a video converted via convertToAudio
+        if let original = originalVideos.removeValue(forKey: entry.id) {
+            convertedToAudioIds.remove(entry.id)
+            OriginalVersion.shared.unpin(videoId: entry.id)
+            if let idx = queue.firstIndex(where: { $0.id == entry.id }) {
+                queue[idx] = original
+                if idx == playingIndex {
+                    debugLog.record("revert to original: restored video \(original.id) for \(entry.id)", about: original.id)
+                    restartCurrent(keepingPosition: smartVersionAlignment)
+                }
+            }
+            return
+        }
+
+        // Restoring a song version swapped via video toggle
+        if let song = songVersions.removeValue(forKey: entry.id) {
+            OriginalVersion.shared.unpin(videoId: entry.id)
+            if let idx = queue.firstIndex(where: { $0.id == entry.id }) {
+                queue[idx] = song
+                if idx == playingIndex {
+                    debugLog.record("revert to original: restored song \(song.id) for \(entry.id)", about: song.id)
+                    restartCurrent(keepingPosition: smartVersionAlignment)
+                }
+            }
+            return
+        }
+
         OriginalVersion.shared.pin(videoId: id)
         // The cached file is whichever copy was downloaded, which for a track
         // being reverted is the one they just rejected. It has to go, or the
@@ -322,6 +351,8 @@ extension PlaybackController {
 
     /// Whether this entry can be converted to an official studio audio track.
     func canConvertToAudio(for entry: QueueEntry) -> Bool {
+        if entry.isLocal { return false }
+        if convertedToAudioIds.contains(entry.id) || originalVideos[entry.id] != nil { return false }
         if songVersions[entry.id] != nil { return true }
         return entry.isVideo || (entry.source.hasPrefix("yt:") && !entry.isLocal)
     }
@@ -329,9 +360,12 @@ extension PlaybackController {
     /// Converts a video entry to its studio audio track counterpart.
     /// If an audio version was already swapped, swaps it back; otherwise resolves
     /// the official song release via Innertube search and swaps the queue entry.
-    func convertToAudio(for target: QueueEntry? = nil) {
+    func convertToAudio(for target: QueueEntry? = nil, completion: (@MainActor (Bool, String) -> Void)? = nil) {
         let entry = target ?? current
-        guard let entry else { return }
+        guard let entry else {
+            completion?(false, "No track selected")
+            return
+        }
 
         // Fast path: we already have the previous song version cached
         if let song = songVersions.removeValue(forKey: entry.id) {
@@ -343,6 +377,7 @@ extension PlaybackController {
                     restartCurrent(keepingPosition: smartVersionAlignment)
                 }
             }
+            completion?(true, "Restored official audio release")
             return
         }
 
@@ -352,7 +387,18 @@ extension PlaybackController {
                 let query = "\(entry.title) \(entry.artist)"
                 let hits = try await InnertubeSearch.shared.search(query, scope: "SONGS")
                 if let match = hits.first(where: { ($0.isVideo == false || $0.isVideo == nil) && $0.videoId != nil }) {
-                    guard let vid = match.videoId else { return }
+                    guard let vid = match.videoId else {
+                        completion?(false, "No official audio release found")
+                        return
+                    }
+
+                    if vid == entry.videoId {
+                        self.convertedToAudioIds.insert(vid)
+                        self.debugLog.record("convert to audio: track is already the official audio release (\(vid))", about: vid)
+                        completion?(false, "Already playing the official audio release")
+                        return
+                    }
+
                     var songEntry = QueueEntry.youtube(
                         videoId: vid,
                         title: match.title,
@@ -367,7 +413,8 @@ extension PlaybackController {
                     songEntry.contextOrder = entry.contextOrder
                     songEntry.isVideo = false
 
-                    self.songVersions[vid] = entry
+                    self.originalVideos[vid] = entry
+                    self.convertedToAudioIds.insert(vid)
                     OriginalVersion.shared.pin(videoId: vid)
 
                     if let idx = self.queue.firstIndex(where: { $0.id == entry.id }) {
@@ -377,11 +424,14 @@ extension PlaybackController {
                             self.restartCurrent(keepingPosition: self.smartVersionAlignment)
                         }
                     }
+                    completion?(true, "Converted to official studio audio")
                 } else {
                     self.debugLog.record("convert to audio: no song candidate found for \(entry.id)", about: entry.id)
+                    completion?(false, "No official audio release found")
                 }
             } catch {
                 self.debugLog.record("convert to audio failed: \(error.localizedDescription)", about: entry.id)
+                completion?(false, "Search failed: \(error.localizedDescription)")
             }
         }
     }

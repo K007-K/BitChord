@@ -73,12 +73,18 @@ struct SongActionButtons: View {
             if controller.canConvertToAudio(for: entry) {
                 Divider()
                 Button("Convert to Audio", systemImage: "music.note") {
-                    controller.convertToAudio(for: entry)
+                    toast.show("Searching official audio…", kind: .info)
+                    controller.convertToAudio(for: entry) { success, message in
+                        toast.show(message, kind: success ? .success : .info)
+                    }
                 }
             }
             if controller.canRevertToOriginal {
                 Divider()
-                Button("Revert to Original") { controller.revertToOriginal() }
+                Button("Revert to Original") {
+                    controller.revertToOriginal()
+                    toast.show("Reverted to original", kind: .info)
+                }
             }
             if controller.canUpgradeQuality {
                 Divider()

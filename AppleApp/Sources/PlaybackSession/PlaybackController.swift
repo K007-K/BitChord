@@ -988,6 +988,8 @@ final class PlaybackController {
     /// Song entries the video toggle replaced with their music-video upload,
     /// keyed by that upload's id, so turning the toggle off can put each back.
     @ObservationIgnored var songVersions: [String: QueueEntry] = [:]
+    @ObservationIgnored var originalVideos: [String: QueueEntry] = [:]
+    @ObservationIgnored var convertedToAudioIds: Set<String> = []
 
     /// Told when *the listener* uses this device's controls, so a party can stop
     /// trying to undo the press for a moment.
