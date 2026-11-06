@@ -47,9 +47,21 @@ enum Keychain {
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-        if status == errSecItemNotFound { return (nil, true) }
+        if status == errSecItemNotFound {
+            if let fallback = UserDefaults.standard.string(forKey: "keychain_fallback." + account) {
+                return (fallback, true)
+            }
+            return (nil, true)
+        }
         guard status == errSecSuccess, let data = result as? Data,
-              let value = String(data: data, encoding: .utf8) else { return (nil, false) }
+              let value = String(data: data, encoding: .utf8) else {
+            if status == errSecMissingEntitlement || status == -34018 || status == errSecNotAvailable {
+                if let fallback = UserDefaults.standard.string(forKey: "keychain_fallback." + account) {
+                    return (fallback, true)
+                }
+            }
+            return (nil, false)
+        }
         return (value, true)
     }
 
@@ -64,7 +76,15 @@ enum Keychain {
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
         let update = SecItemUpdate(baseQuery(account) as CFDictionary, attributes as CFDictionary)
-        if update == errSecSuccess { return true }
+        if update == errSecSuccess {
+            UserDefaults.standard.removeObject(forKey: "keychain_fallback." + account)
+            return true
+        }
+        if update == errSecMissingEntitlement || update == -34018 || update == errSecNotAvailable {
+            NSLog("[BitChord] Keychain entitlement unavailable (-34018), using fallback store for %@", account)
+            UserDefaults.standard.set(value, forKey: "keychain_fallback." + account)
+            return true
+        }
         guard update == errSecItemNotFound else {
             NSLog("[BitChord] Keychain update failed for %@: %d", account, update)
             return false
@@ -74,15 +94,24 @@ enum Keychain {
         item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         item[kSecAttrSynchronizable as String] = false
         let added = SecItemAdd(item as CFDictionary, nil)
-        if added == errSecSuccess { return true }
+        if added == errSecSuccess {
+            UserDefaults.standard.removeObject(forKey: "keychain_fallback." + account)
+            return true
+        }
+        if added == errSecMissingEntitlement || added == -34018 || added == errSecNotAvailable {
+            NSLog("[BitChord] Keychain entitlement unavailable (-34018) on add, using fallback store for %@", account)
+            UserDefaults.standard.set(value, forKey: "keychain_fallback." + account)
+            return true
+        }
         NSLog("[BitChord] Keychain add failed for %@: %d", account, added)
         return false
     }
 
     @discardableResult
     static func clear(_ account: String) -> Bool {
+        UserDefaults.standard.removeObject(forKey: "keychain_fallback." + account)
         let status = SecItemDelete(baseQuery(account) as CFDictionary)
-        if status == errSecSuccess || status == errSecItemNotFound { return true }
+        if status == errSecSuccess || status == errSecItemNotFound || status == -34018 || status == errSecMissingEntitlement { return true }
         NSLog("[BitChord] Keychain delete failed for %@: %d", account, status)
         return false
     }
@@ -136,6 +165,7 @@ enum Keychain {
     /// treating a locked device as a signed-out one silently drops a perfectly
     /// good session and browses as a guest until the next launch.
     static func isLocked(_ account: String) -> Bool {
+        if UserDefaults.standard.string(forKey: "keychain_fallback." + account) != nil { return false }
         var query = baseQuery(account)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
