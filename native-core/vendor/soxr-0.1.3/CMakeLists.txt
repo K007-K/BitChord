@@ -69,8 +69,8 @@ cmake_dependent_option (WITH_PFFFT
 cmake_dependent_option (WITH_AVFFT
   "Use libavcodec (LGPL) for HQ SIMD DFT." OFF
   "WITH_CR32S;NOT WITH_PFFFT" OFF)
-cmake_dependent_option (BUILD_LSR_TESTS "Build LSR tests." OFF
-  "UNIX;NOT CMAKE_CROSSCOMPILING;EXISTS ${PROJECT_SOURCE_DIR}/lsr-tests;WITH_LSR_BINDINGS" OFF)
+# BUILD_LSR_TESTS: disabled unconditionally (cmake_dependent_option breaks on paths with spaces)
+set(BUILD_LSR_TESTS OFF CACHE BOOL "Build LSR tests." FORCE)
 
 option (WITH_HI_PREC_CLOCK "Enable high-precision time-base." ON)
 option (WITH_FLOAT_STD_PREC_CLOCK
