@@ -123,11 +123,15 @@ final class AuthController {
     /// The screen stays open until `onComplete` fires, so a half-finished channel
     /// chooser can never become a durable broken account.
     func accept(_ session: SignInCapture, onComplete: ((Bool) -> Void)? = nil) {
+        let authUser = session.authUser?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            ? session.authUser!
+            : "0"
         let previousCookie = AccountStore.shared.activeAccount()?.cookie ?? AuthStore.cookie
         guard session.loggedIn,
               AuthBridge.shared.hasApiSid(cookieHeader: session.cookie),
               AuthBridge.shared.applyCookie(cookieHeader: session.cookie)
         else {
+            NSLog("[BitChord Auth] applyCookie or hasApiSid failed!")
             // Visible rather than silent: the listener confirmed and the app is
             // not signed in, and saying nothing is what made this look like the
             // sign-in had worked.
@@ -139,29 +143,38 @@ final class AuthController {
         AuthBridge.shared.adoptSessionScope(
             pageId: session.pageId,
             dataSyncId: session.dataSyncId,
-            authUser: session.authUser,
+            authUser: authUser,
             visitorData: session.visitorData,
             clientVersion: session.clientVersion,
             loggedIn: true
         )
         let generation = PageSession.generation()
-        AuthBridge.shared.ensureSession(callback: SessionDoneAdapter { ok, _ in
+        AuthBridge.shared.ensureSession(callback: SessionDoneAdapter { ok, errorMsg in
             guard ok else {
+                NSLog("[BitChord Auth] ensureSession failed: %@", errorMsg ?? "unknown")
                 Task { @MainActor in
                     guard PageSession.generation() == generation else { onComplete?(false); return }
                     self.restorePreviousSession(cookie: previousCookie)
                     self.sessionUnavailableReason =
-                        "Google gave a session this app could not use. Try signing in again."
+                        errorMsg ?? "Google gave a session this app could not use. Try signing in again."
                     onComplete?(false)
                 }
                 return
             }
-            AccountBridge.shared.account(callback: AccountCallbackAdapter { json, _ in
+            AccountBridge.shared.account(callback: AccountCallbackAdapter { json, accountMsg in
                 Task { @MainActor in
                     guard PageSession.generation() == generation else { onComplete?(false); return }
-                    guard let json,
-                          let info = try? JSONDecoder().decode(AccountInfo.self, from: Data(json.utf8))
-                    else {
+                    var info: AccountInfo?
+                    if let json,
+                       let decoded = try? JSONDecoder().decode(AccountInfo.self, from: Data(json.utf8)) {
+                        info = decoded
+                    } else if let previewName = session.previewName, !previewName.isEmpty {
+                        NSLog("[BitChord Auth] AccountBridge decode failed or was nil (%@), falling back to verified preview profile: %@", accountMsg ?? "none", previewName)
+                        info = AccountInfo(name: previewName, email: session.previewEmail ?? "", photoUrl: session.previewPhotoUrl)
+                    }
+
+                    guard let info else {
+                        NSLog("[BitChord Auth] Failed to obtain account info (AccountBridge: %@)", accountMsg ?? "none")
                         self.restorePreviousSession(cookie: previousCookie)
                         self.sessionUnavailableReason =
                             "Google gave a session this app could not use. Try signing in again."
@@ -189,9 +202,10 @@ final class AuthController {
                             name: info.name,
                             pageId: session.pageId,
                             dataSyncId: session.dataSyncId,
-                            authUser: session.authUser
+                            authUser: authUser
                         )]
                     )) else {
+                        NSLog("[BitChord Auth] self.record failed!")
                         self.restorePreviousSession(cookie: previousCookie)
                         self.sessionUnavailableReason =
                             "Your account was verified, but its session could not be saved. Try again."
@@ -210,6 +224,7 @@ final class AuthController {
                     self.accountPhotoUrl = info.photoUrl
                     self.publishAccount()
                     Task { await self.refreshAccount() }
+                    NSLog("[BitChord Auth] Sign in successful for %@", info.name)
                     onComplete?(true)
                 }
             })

@@ -671,6 +671,7 @@ final class LoginWebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, W
                 }
                 let dataSyncId = fields.pageId ?? SignInCapture.normalizeDataSyncId(fields.dataSyncId)
                 self.captured = true
+                let preview = self.flow.profile
                 // Keep Checking visible until the existing verification and
                 // durable save finish. Capture alone is not a successful login.
                 self.onCaptured(
@@ -678,10 +679,13 @@ final class LoginWebCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, W
                         cookie: header,
                         pageId: fields.pageId,
                         dataSyncId: dataSyncId,
-                        authUser: fields.authUser,
+                        authUser: fields.authUser ?? "0",
                         visitorData: fields.visitorData,
                         clientVersion: fields.clientVersion,
-                        loggedIn: true
+                        loggedIn: true,
+                        previewName: preview?.name,
+                        previewEmail: preview?.subtitle,
+                        previewPhotoUrl: preview?.avatarURL?.absoluteString
                     )
                 ) { [weak self] accepted in
                     Task { @MainActor in

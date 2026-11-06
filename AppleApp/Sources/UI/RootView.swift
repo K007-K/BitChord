@@ -1098,11 +1098,13 @@ struct NowPlayingTakeover: ViewModifier {
                 // guaranteed edge to edge.
                 content.fullScreenCover(isPresented: $isPresented) {
                     NowPlayingView()
+                        .overlay { ToastHost() }
                         .navigationTransition(.zoom(sourceID: NowPlayingZoom.sourceID, in: zoomNamespace))
                 }
             } else {
                 content.sheet(isPresented: $isPresented) {
                     NowPlayingView()
+                        .overlay { ToastHost() }
                         .modifier(NowPlayingSheetSizing())
                         .navigationTransition(.zoom(sourceID: NowPlayingZoom.sourceID, in: zoomNamespace))
                 }

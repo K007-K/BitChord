@@ -23,6 +23,9 @@ struct SignInCapture: Equatable {
     var clientVersion: String?
     /// Whether the page reported itself signed in at all.
     var loggedIn: Bool
+    var previewName: String? = nil
+    var previewEmail: String? = nil
+    var previewPhotoUrl: String? = nil
 
     /// The probe's result, or nil for anything that isn't the object it promises.
     ///
@@ -51,7 +54,7 @@ struct SignInCapture: Equatable {
             loggedIn: string(dict["loggedIn"]) == "true",
             pageId: nonBlank(string(dict["pageId"])),
             dataSyncId: nonBlank(string(dict["dataSyncId"])),
-            authUser: nonBlank(string(dict["authUser"])),
+            authUser: nonBlank(string(dict["authUser"])) ?? "0",
             visitorData: nonBlank(string(dict["visitorData"])),
             clientVersion: nonBlank(string(dict["clientVersion"]))
         )
