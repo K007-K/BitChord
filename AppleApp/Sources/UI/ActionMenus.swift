@@ -70,10 +70,10 @@ struct SongActionButtons: View {
         // answers so the menu cannot disagree with the resolution path about
         // what a revert means.
         if entry.id == controller.current?.id {
-            if controller.songVersions[entry.id] != nil {
+            if controller.canConvertToAudio(for: entry) {
                 Divider()
                 Button("Convert to Audio", systemImage: "music.note") {
-                    controller.playSongVersion()
+                    controller.convertToAudio(for: entry)
                 }
             }
             if controller.canRevertToOriginal {

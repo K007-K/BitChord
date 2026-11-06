@@ -320,6 +320,72 @@ extension PlaybackController {
         restartCurrent(keepingPosition: smartVersionAlignment)
     }
 
+    /// Whether this entry can be converted to an official studio audio track.
+    func canConvertToAudio(for entry: QueueEntry) -> Bool {
+        if songVersions[entry.id] != nil { return true }
+        return entry.isVideo || (entry.source.hasPrefix("yt:") && !entry.isLocal)
+    }
+
+    /// Converts a video entry to its studio audio track counterpart.
+    /// If an audio version was already swapped, swaps it back; otherwise resolves
+    /// the official song release via Innertube search and swaps the queue entry.
+    func convertToAudio(for target: QueueEntry? = nil) {
+        let entry = target ?? current
+        guard let entry else { return }
+
+        // Fast path: we already have the previous song version cached
+        if let song = songVersions.removeValue(forKey: entry.id) {
+            OriginalVersion.shared.unpin(videoId: entry.id)
+            if let idx = queue.firstIndex(where: { $0.id == entry.id }) {
+                queue[idx] = song
+                if idx == playingIndex {
+                    debugLog.record("convert to audio: restored song \(song.id) for \(entry.id)", about: song.id)
+                    restartCurrent(keepingPosition: smartVersionAlignment)
+                }
+            }
+            return
+        }
+
+        // On-demand lookup via InnertubeSearch
+        Task { @MainActor in
+            do {
+                let query = "\(entry.title) \(entry.artist)"
+                let hits = try await InnertubeSearch.shared.search(query, scope: "SONGS")
+                if let match = hits.first(where: { ($0.isVideo == false || $0.isVideo == nil) && $0.videoId != nil }) {
+                    guard let vid = match.videoId else { return }
+                    var songEntry = QueueEntry.youtube(
+                        videoId: vid,
+                        title: match.title,
+                        artist: match.subtitle ?? entry.artist,
+                        thumbnailUrl: match.thumbnailUrl ?? entry.thumbnailUrl,
+                        durationText: match.durationText ?? entry.durationText,
+                        albumName: match.albumName ?? entry.albumName,
+                        artistId: match.artistId ?? entry.artistId,
+                        albumId: match.albumId ?? entry.albumId,
+                        fromAutoplay: entry.fromAutoplay
+                    )
+                    songEntry.contextOrder = entry.contextOrder
+                    songEntry.isVideo = false
+
+                    self.songVersions[vid] = entry
+                    OriginalVersion.shared.pin(videoId: vid)
+
+                    if let idx = self.queue.firstIndex(where: { $0.id == entry.id }) {
+                        self.queue[idx] = songEntry
+                        if idx == self.playingIndex {
+                            self.debugLog.record("convert to audio: matched \(vid) for \(entry.id)", about: vid)
+                            self.restartCurrent(keepingPosition: self.smartVersionAlignment)
+                        }
+                    }
+                } else {
+                    self.debugLog.record("convert to audio: no song candidate found for \(entry.id)", about: entry.id)
+                }
+            } catch {
+                self.debugLog.record("convert to audio failed: \(error.localizedDescription)", about: entry.id)
+            }
+        }
+    }
+
     /// Puts the song back where the video toggle had swapped in its music video.
     /// Does nothing when the playing entry is the song itself.
     func playSongVersion() {
