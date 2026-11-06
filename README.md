@@ -9,7 +9,7 @@ YouTube Music, your own library, DJ-style Automix and Hi-Res playback.
 
 <br>
 
-[![Release](https://img.shields.io/github/v/release/bagumamartin/BitChord?style=for-the-badge&label=release&color=2F81F7)](https://github.com/bagumamartin/BitChord/releases/latest)
+[![Release](https://img.shields.io/github/v/release/K007-K/BitChord?style=for-the-badge&label=release&color=2F81F7)](https://github.com/K007-K/BitChord/releases/latest)
 [![License](https://img.shields.io/badge/license-GPL--3.0-E8743B?style=for-the-badge)](LICENSE)
 [![Platforms](https://img.shields.io/badge/macOS_15+_·_iOS_18+-F5263F?style=for-the-badge)](#download)
 
@@ -29,18 +29,21 @@ YouTube Music, your own library, DJ-style Automix and Hi-Res playback.
 > [!IMPORTANT]
 > This is an unofficial Apple-platform port of [BitChord](https://github.com/kushagrasinghx/BitChord) by [Kushagra Singh](https://github.com/kushagrasinghx). It is not affiliated with, endorsed by, or connected to YouTube or Google in any way. Use it at your own discretion.
 
+> [!NOTE]
+> This is a maintained fork of [bagumamartin/BitChord](https://github.com/bagumamartin/BitChord) by [@K007-K](https://github.com/K007-K), with the YouTube Music sign-in blank page bug fixed (`&passive=true` → `&prompt=select_account`). A [pull request](https://github.com/bagumamartin/BitChord/pulls) has been submitted upstream. Download working iOS/macOS builds from the [Releases](https://github.com/K007-K/BitChord/releases/latest) page.
+
 ## Download
 
 <div align="center">
 
-<a href="https://github.com/bagumamartin/BitChord/releases/latest"><img src="artwork/readme/download-mac.svg" alt="Download for macOS" height="68"></a>&nbsp;&nbsp;
-<a href="https://github.com/bagumamartin/BitChord/releases/latest"><img src="artwork/readme/download-ios.svg" alt="Download for iPhone and iPad" height="68"></a>
+<a href="https://github.com/K007-K/BitChord/releases/latest"><img src="artwork/readme/download-mac.svg" alt="Download for macOS" height="68"></a>&nbsp;&nbsp;
+<a href="https://github.com/K007-K/BitChord/releases/latest"><img src="artwork/readme/download-ios.svg" alt="Download for iPhone and iPad" height="68"></a>
 
 <sub><b>Mac:</b> DMG for macOS 15 or later on Apple Silicon, with in-app updates &nbsp;·&nbsp; <b>iPhone & iPad:</b> unsigned IPA for iOS and iPadOS 18 or later</sub>
 
 </div>
 
-Both installers are on the [latest release](https://github.com/bagumamartin/BitChord/releases/latest), alongside `SHA256.txt` and `release.json` with their checksums. Release builds are not signed by a developer or notarized; [Install](#install) shows how to open them. Intel Macs are not supported.
+Both installers are on the [latest release](https://github.com/K007-K/BitChord/releases/latest), alongside `SHA256.txt` and `release.json` with their checksums. Release builds are not signed by a developer or notarized; [Install](#install) shows how to open them. Intel Macs are not supported.
 
 ## Features
 
@@ -76,7 +79,7 @@ Features that depend on external services, sources, audio routes or optional mod
 
 ### Mac
 
-1. Download the DMG from the [latest release](https://github.com/bagumamartin/BitChord/releases/latest), open it, and drag BitChord to Applications.
+1. Download the DMG from the [latest release](https://github.com/K007-K/BitChord/releases/latest), open it, and drag BitChord to Applications.
 2. The DMG is ad-hoc signed and not notarized, so Gatekeeper may block the first launch. Open it either way:
    - **System Settings:** go to Privacy & Security, scroll to Security, choose **Open Anyway** for BitChord, then confirm **Open**.
    - **Terminal:**
@@ -90,7 +93,7 @@ Later versions arrive through **Settings → Version & Updates**, with no need t
 
 ### iPhone and iPad
 
-1. Download the IPA from the [latest release](https://github.com/bagumamartin/BitChord/releases/latest).
+1. Download the IPA from the [latest release](https://github.com/K007-K/BitChord/releases/latest).
 2. Sign and install it with [AltStore](https://altstore.io), [SideStore](https://sidestore.io) or [Sideloadly](https://sideloadly.io), using your Apple account or developer team.
 3. Trust the developer profile if iOS asks.
 
@@ -111,7 +114,7 @@ Builds currently require a Mac with Xcode and the Apple SDKs for the deployment 
 Clone the repository:
 
 ```sh
-git clone https://github.com/bagumamartin/BitChord.git
+git clone https://github.com/K007-K/BitChord.git
 cd BitChord
 ```
 
@@ -172,13 +175,13 @@ Optional [automatic addon renewal](ADDON_REFRESH.md) uses a renewal link supplie
 
 ## Contributing
 
-Bug reports, ideas and pull requests are welcome in [Issues](https://github.com/bagumamartin/BitChord/issues) and [Pull requests](https://github.com/bagumamartin/BitChord/pulls). Please describe the device, OS version and BitChord version and build (shown in **Settings → Version & Updates**).
+Bug reports, ideas and pull requests are welcome in [Issues](https://github.com/K007-K/BitChord/issues) and [Pull requests](https://github.com/K007-K/BitChord/pulls). Please describe the device, OS version and BitChord version and build (shown in **Settings → Version & Updates**).
 
 <div align="center">
 
 **Contributors to this port**
 
-<a href="https://github.com/bagumamartin/BitChord/graphs/contributors"><img src="https://contrib.rocks/image?repo=bagumamartin/BitChord" alt="Contributors to BitChord for Apple"></a>
+<a href="https://github.com/K007-K/BitChord/graphs/contributors"><img src="https://contrib.rocks/image?repo=K007-K/BitChord" alt="Contributors to BitChord for Apple"></a>
 
 **And the BitChord contributors this port builds on**
 
