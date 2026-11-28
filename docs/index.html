@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    try {
+      const saved = localStorage.getItem("color-scheme");
+      if (saved === "light" || saved === "dark") {
+        document.querySelector('meta[name="color-scheme"]').content = saved;
+      }
+    } catch {}
+  </script>
+  <title>BitChord for iOS — Your music. Your way.</title>
+  <link rel="icon" type="image/png" href="assets/bitchord-icon.png">
+  <link rel="apple-touch-icon" href="assets/bitchord-icon.png">
+  <meta name="description" content="BitChord is an open-source iOS YouTube Music client with Hi-Res FLAC audio, cross-platform Listen Together parties, AutoMix, synced lyrics, iOS Widgets, Google Drive backup, and Discord Rich Presence.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      color-scheme: light dark;
+
+      --bg: light-dark(#f5f5f7, #000000);
+      --bg-elevated: light-dark(#ffffff, #0c0c0f);
+      --bg-subtle: light-dark(#ebebf0, #141418);
+      --surface: light-dark(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.045));
+      --surface-hover: light-dark(rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.08));
+      --nav-bg: light-dark(rgba(245, 245, 247, 0.78), rgba(0, 0, 0, 0.72));
+      --border: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.1));
+      --border-strong: light-dark(rgba(0, 0, 0, 0.16), rgba(255, 255, 255, 0.2));
+
+      --text-primary: light-dark(#1d1d1f, #f5f5f7);
+      --text-secondary: light-dark(#515154, #a1a1a6);
+      --text-muted: light-dark(#6e6e73, #86868b);
+
+      --btn-primary-bg: light-dark(#1d1d1f, #f5f5f7);
+      --btn-primary-fg: light-dark(#ffffff, #000000);
+      --btn-secondary-bg: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.08));
+
+      --accent-indigo: light-dark(#4f46e5, #5e5ce6);
+      --accent-purple: light-dark(#9333ea, #bf5af2);
+      --accent-pink: light-dark(#e11d48, #ff375f);
+      --accent-green: light-dark(#16a34a, #30d158);
+      --accent-blue: light-dark(#0071e3, #0a84ff);
+
+      --shadow-card: light-dark(0 12px 34px rgba(0, 0, 0, 0.06), 0 18px 40px rgba(0, 0, 0, 0.45));
+      --shadow-phone: light-dark(0 32px 80px rgba(0, 0, 0, 0.18), 0 36px 90px rgba(0, 0, 0, 0.75));
+
+      --font-display: -apple-system, "SF Pro Display", BlinkMacSystemFont, "Inter", sans-serif;
+      --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 14px;
+      --radius-pill: 999px;
+      --max-width: 1140px;
+    }
+
+    :root:has(> head > meta[name="color-scheme"][content="dark"]) {
+      color-scheme: dark;
+    }
+
+    :root:has(> head > meta[name="color-scheme"][content="light"]) {
+      color-scheme: light;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.55;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent-blue);
+      outline-offset: 3px;
+    }
+
+    /* Navigation */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--nav-bg);
+      backdrop-filter: blur(22px) saturate(180%);
+      -webkit-backdrop-filter: blur(22px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -0.025em;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .theme-toggle {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: grid;
+      place-items: center;
+      color: var(--text-primary);
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--surface-hover);
+      transform: translateY(-1px);
+    }
+
+    .theme-icon-sun,
+    .theme-icon-moon {
+      display: none;
+    }
+
+    /* Show sun when currently dark (action: switch to light), moon when currently light */
+    @media (prefers-color-scheme: dark) {
+      :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .theme-icon-sun {
+        display: block;
+      }
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not(:has(> head > meta[name="color-scheme"][content="dark"])) .theme-icon-moon {
+        display: block;
+      }
+    }
+    :root:has(> head > meta[name="color-scheme"][content="dark"]) .theme-icon-sun {
+      display: block;
+    }
+    :root:has(> head > meta[name="color-scheme"][content="light"]) .theme-icon-moon {
+      display: block;
+    }
+
+    .nav-cta {
+      padding: 7px 15px;
+      border-radius: var(--radius-pill);
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-fg);
+      font-weight: 600;
+      font-size: 0.82rem;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .nav-cta:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 108px 24px 72px;
+      overflow: hidden;
+    }
+
+    .mesh-bg {
+      position: absolute;
+      inset: -18%;
+      z-index: 0;
+      pointer-events: none;
+      filter: blur(95px);
+      opacity: light-dark(0.32, 0.55);
+    }
+
+    .mesh-orb {
+      position: absolute;
+      border-radius: 50%;
+      will-change: transform;
+    }
+
+    .orb-1 {
+      width: 520px;
+      height: 520px;
+      top: 8%;
+      left: 14%;
+      background: radial-gradient(circle, rgba(94, 92, 230, 0.72), transparent 70%);
+    }
+
+    .orb-2 {
+      width: 480px;
+      height: 480px;
+      top: 22%;
+      right: 12%;
+      background: radial-gradient(circle, rgba(255, 55, 95, 0.58), transparent 70%);
+    }
+
+    .orb-3 {
+      width: 440px;
+      height: 440px;
+      bottom: 6%;
+      left: 38%;
+      background: radial-gradient(circle, rgba(191, 90, 242, 0.52), transparent 70%);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .orb-1 { animation: float-1 18s ease-in-out infinite alternate; }
+      .orb-2 { animation: float-2 22s ease-in-out infinite alternate; }
+      .orb-3 { animation: float-3 20s ease-in-out infinite alternate; }
+    }
+
+    @keyframes float-1 {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to { transform: translate3d(55px, -35px, 0) scale(1.1); }
+    }
+    @keyframes float-2 {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to { transform: translate3d(-65px, 45px, 0) scale(1.08); }
+    }
+    @keyframes float-3 {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to { transform: translate3d(35px, -55px, 0) scale(0.94); }
+    }
+
+    .hero-grid {
+      position: relative;
+      z-index: 2;
+      max-width: var(--max-width);
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      align-items: center;
+      gap: 56px;
+    }
+
+    @media (max-width: 920px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 44px;
+      }
+      .hero-copy {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .nav-links {
+        display: none;
+      }
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .eyebrow-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3.3rem, 2.2rem + 4.8vw, 5.75rem);
+      font-weight: 700;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+      margin-bottom: 14px;
+    }
+
+    .hero-tagline {
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 1.05rem + 1.5vw, 2.15rem);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--text-secondary);
+      margin-bottom: 18px;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(0.98rem, 0.92rem + 0.3vw, 1.12rem);
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin-bottom: 32px;
+      line-height: 1.65;
+    }
+
+    .cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 920px) {
+      .cta-group {
+        justify-content: center;
+      }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 13px 22px;
+      border-radius: var(--radius-pill);
+      font-size: 0.92rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-fg);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+    }
+
+    .btn-secondary {
+      background: var(--btn-secondary-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      backdrop-filter: blur(16px);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-hover);
+    }
+
+    .hero-meta {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+
+    /* 3D Interactive iPhone Stage */
+    .phone-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+
+    .phone-stage::before {
+      content: "";
+      position: absolute;
+      width: 440px;
+      height: 500px;
+      top: 46%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255, 55, 95, 0.34), rgba(94, 92, 230, 0.24) 48%, transparent 74%);
+      filter: blur(65px);
+      z-index: 0;
+      pointer-events: none;
+      transition: background 0.5s ease;
+    }
+
+    .phone-stage[data-mode="lyrics"]::before {
+      background: radial-gradient(circle, rgba(191, 90, 242, 0.38), rgba(255, 159, 10, 0.2) 50%, transparent 74%);
+    }
+    .phone-stage[data-mode="actions"]::before {
+      background: radial-gradient(circle, rgba(255, 59, 48, 0.42), rgba(94, 92, 230, 0.2) 50%, transparent 74%);
+    }
+    .phone-stage[data-mode="widgets"]::before {
+      background: radial-gradient(circle, rgba(10, 132, 255, 0.36), rgba(48, 209, 88, 0.24) 50%, transparent 74%);
+    }
+
+    .canvas-3d-wrap {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 440px;
+      height: 560px;
+      display: grid;
+      place-items: center;
+    }
+
+    #iphone-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+      touch-action: pan-y;
+    }
+
+    #iphone-canvas:active {
+      cursor: grabbing;
+    }
+
+    .glb-loader {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      transition: opacity 0.3s ease;
+    }
+
+    .glb-loader.hidden {
+      opacity: 0;
+    }
+
+    .phone-controls-bar {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .finish-swatches {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      backdrop-filter: blur(12px);
+    }
+
+    .swatch-btn {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-strong);
+      background: var(--swatch);
+      padding: 0;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .swatch-btn[aria-pressed="true"] {
+      transform: scale(1.15);
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--text-primary);
+    }
+
+    .reset-view-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      padding: 5px 11px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 500;
+      backdrop-filter: blur(12px);
+    }
+
+    .reset-view-btn:hover {
+      color: var(--text-primary);
+      background: var(--surface-hover);
+    }
+
+    .play-pill-btn {
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text-primary);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.76rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(12px);
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .play-pill-btn:hover {
+      background: var(--surface-hover);
+    }
+
+    .play-pill-btn[aria-pressed="true"] {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-fg);
+      border-color: transparent;
+    }
+
+    .drag-hint {
+      position: relative;
+      z-index: 2;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    /* Phone Mode Switcher Tabs */
+    .phone-tabs {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px;
+      border-radius: var(--radius-pill);
+      backdrop-filter: blur(12px);
+    }
+
+    .phone-tab {
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      position: relative;
+    }
+
+    .phone-tab[aria-selected="true"] {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-fg);
+    }
+
+    /* Sections */
+    .section {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 88px 24px;
+    }
+
+    .section-header {
+      max-width: 680px;
+      margin-bottom: 48px;
+    }
+
+    .section-kicker {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-purple);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 1.4rem + 2.3vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      margin-bottom: 14px;
+    }
+
+    .section-desc {
+      font-size: 1.03rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Bento Grid */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 18px;
+    }
+
+    .bento-card {
+      grid-column: span 2;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .bento-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-strong);
+    }
+
+    .bento-wide {
+      grid-column: span 3;
+    }
+
+    @media (max-width: 960px) {
+      .bento-card,
+      .bento-wide {
+        grid-column: span 3;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .bento-card,
+      .bento-wide {
+        grid-column: span 6;
+      }
+    }
+
+    .bento-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      color: var(--accent-blue);
+      margin-bottom: 12px;
+    }
+
+    .bento-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .bento-card p {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 1.58;
+    }
+
+    .bento-visual {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .mini-pill {
+      padding: 5px 11px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    /* Install Guide Tabs (following modern-web-guidance tabs pattern) */
+    .install-shell {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 36px;
+      box-shadow: var(--shadow-card);
+    }
+
+    @media (max-width: 640px) {
+      .install-shell {
+        padding: 24px 20px;
+      }
+    }
+
+    .install-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .tablist {
+      display: flex;
+      overflow-x: auto;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .tablist [role="tab"] {
+      position: relative;
+      flex: none;
+      background: none;
+      border: none;
+      padding: 12px 18px;
+      font-weight: 600;
+      font-size: 0.94rem;
+      color: var(--text-secondary);
+    }
+
+    .tablist [role="tab"][aria-selected="true"] {
+      color: var(--accent-blue);
+    }
+
+    .tablist [role="tab"][aria-selected="true"]::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      border-block-end: 3px solid var(--accent-blue);
+    }
+
+    .panel-inner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .panel-inner {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .panel-inner {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .step-card {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+    }
+
+    .step-num {
+      display: inline-grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      color: #ffffff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .step-card h4 {
+      font-family: var(--font-display);
+      font-size: 0.98rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .step-card p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .trust-note {
+      margin-top: 20px;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+    }
+
+    .trust-note strong {
+      color: var(--text-primary);
+    }
+
+    /* Credits & Contributions */
+    .credits-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 780px) {
+      .credits-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .credit-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .credit-card.highlight {
+      border-color: var(--accent-indigo);
+    }
+
+    .credit-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .credit-role {
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .credit-card.highlight .credit-role {
+      color: var(--accent-indigo);
+      border-color: var(--accent-indigo);
+    }
+
+    .credit-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .credit-card p, .credit-list {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .credit-list {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .credit-link {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      margin-top: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Scroll Reveal Animations */
+    @media (prefers-reduced-motion: no-preference) {
+      @supports ((animation-timeline: view()) and (animation-range: entry)) {
+        @keyframes card-reveal {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.985);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .reveal {
+          animation: card-reveal auto ease-out backwards;
+          animation-timeline: view();
+          animation-range: entry 0% entry 30%;
+        }
+      }
+
+      .reveal-fallback {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .reveal-fallback.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 44px 24px 60px;
+    }
+
+    .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+    }
+
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-brand">
+        <span class="brand-mark">
+          <img src="assets/bitchord-icon.png" alt="BitChord icon">
+        </span>
+        <span>BitChord</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#install">Install on iOS</a>
+        <a href="#credits">Developers</a>
+        <a href="https://discord.gg/pDdKfrdHY6" target="_blank" rel="noopener">Discord</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle color theme">
+          <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+          </svg>
+          <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+        </button>
+        <a href="https://github.com/K007-K/BitChord/releases" target="_blank" rel="noopener" class="nav-cta">iOS Releases</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero + Interactive iPhone Preview -->
+    <section class="hero">
+      <div class="mesh-bg" aria-hidden="true">
+        <div class="mesh-orb orb-1"></div>
+        <div class="mesh-orb orb-2"></div>
+        <div class="mesh-orb orb-3"></div>
+      </div>
+
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            <span>Open Source iOS Client &middot; iOS 17+</span>
+          </div>
+
+          <h1 class="hero-title">BitChord</h1>
+          <p class="hero-tagline">Your music. Your way.</p>
+          <p class="hero-subtitle">
+            A native YouTube Music experience for iOS featuring Hi-Res FLAC playback, cross-platform Listen Together parties, intelligent AutoMix, synced lyrics, iOS Widgets, and Google Drive backup.
+          </p>
+
+          <div class="cta-group">
+            <a href="https://github.com/K007-K/BitChord/releases" target="_blank" rel="noopener" class="btn btn-primary">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+              Download iOS Release
+            </a>
+            <a href="#install" class="btn btn-secondary">Install via AltStore / ESign</a>
+            <a href="https://discord.gg/pDdKfrdHY6" target="_blank" rel="noopener" class="btn btn-secondary">Join Discord</a>
+          </div>
+
+          <div class="hero-meta">
+            <span>Maintained by <strong>Karthik (K007-K)</strong></span>
+            <span>&middot;</span>
+            <span>Original by <strong>kushagrasinghx</strong>, <strong>bagumamartin</strong> &amp; <strong>maanya145</strong></span>
+          </div>
+        </div>
+
+        <div class="phone-stage" id="phone-stage" data-mode="player">
+          <div class="canvas-3d-wrap">
+            <div class="glb-loader" id="glb-loader">Loading 3D iPhone&hellip;</div>
+            <canvas id="iphone-canvas" aria-label="Interactive 3D iPhone running BitChord"></canvas>
+          </div>
+
+          <div class="phone-controls-bar">
+            <div class="phone-tabs" role="tablist" aria-label="BitChord screen previews">
+              <button type="button" class="phone-tab" role="tab" aria-selected="true" data-mode="player">Player</button>
+              <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="lyrics">Lyrics</button>
+              <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="actions">Controls</button>
+              <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="widgets">Widgets</button>
+            </div>
+
+            <div class="finish-swatches" role="group" aria-label="Titanium finish">
+              <button type="button" class="swatch-btn" style="--swatch:#3b3c40" data-finish="black" data-color="#3B3C40" aria-pressed="false" aria-label="Black Titanium"></button>
+              <button type="button" class="swatch-btn" style="--swatch:#dfded9" data-finish="white" data-color="#DFDED9" aria-pressed="true" aria-label="White Titanium"></button>
+            </div>
+
+            <button type="button" class="play-pill-btn" id="play-toggle-btn" aria-pressed="true">&#10074;&#10074; Pause</button>
+            <button type="button" class="reset-view-btn" id="reset-3d-view">Reset View</button>
+          </div>
+          <p class="drag-hint">Tap Play, scrubber, heart, or menu directly on the 3D screen &middot; Drag to rotate 360&deg;</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Bento Grid -->
+    <section id="features" class="section">
+      <div class="section-header reveal">
+        <p class="section-kicker">Everything inside BitChord</p>
+        <h2 class="section-title">Built for audiophiles. Crafted for iOS.</h2>
+        <p class="section-desc">
+          Every feature from lossless streaming and cross-platform jam sessions to Apple-native widgets and cloud backups, unified in one fast app.
+        </p>
+      </div>
+
+      <div class="bento-grid">
+        <article class="bento-card bento-wide reveal">
+          <div>
+            <div class="bento-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+            </div>
+            <h3>Hi-Res Lossless &amp; Audio Engine</h3>
+            <p>Stream FLAC up to 24-bit / 48 kHz+ with automatic quality upgrades, parametric Equalizer, Spatial Audio routing, and live codec/bitrate telemetry.</p>
+          </div>
+          <div class="bento-visual">
+            <div class="pill-list">
+              <span class="mini-pill">FLAC 24-bit / 48 kHz</span>
+              <span class="mini-pill">Parametric EQ</span>
+              <span class="mini-pill">Spatial Audio</span>
+              <span class="mini-pill">BestPart Pill</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="bento-card bento-wide reveal">
+          <div>
+            <div class="bento-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h3>Listen Together (iOS &harr; Android)</h3>
+            <p>Host synchronized jam rooms with QR invites, shared queues, and host controls. Updated to <code>api.bitchord.kushagrasingh.in</code> for seamless compatibility with the latest Android APK.</p>
+          </div>
+          <div class="bento-visual">
+            <div class="pill-list">
+              <span class="mini-pill">WebSocket Clock Sync</span>
+              <span class="mini-pill">QR Code Invites</span>
+              <span class="mini-pill">Custom Server Support</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="bento-card reveal">
+          <div>
+            <div class="bento-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+            </div>
+            <h3>AutoMix</h3>
+            <p>Beat-matched and vocal-aware transitions keep your queue flowing smoothly without abrupt endings.</p>
+          </div>
+          <div class="bento-visual">Smart beat &amp; vocal transition planner</div>
+        </article>
+
+        <article class="bento-card reveal">
+          <div>
+            <div class="bento-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3>Synced Lyrics &amp; Cards</h3>
+            <p>Word and line-synced lyrics with instant translation, offset tuning, and Apple Music-style shareable lyric cards.</p>
+          </div>
+          <div class="bento-visual">Multi-provider lyrics + live translation</div>
+        </article>
+
+        <article class="bento-card reveal">
+          <div>
+            <div class="bento-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+            </div>
+            <h3>iOS Widgets &amp; Dynamic Island</h3>
+            <p>Interactive Home Screen widgets, Lock Screen controls, and Live Activities in the Dynamic Island.</p>
+          </div>
+          <div class="bento-visual">Home Screen &middot; Lock Screen &middot; Live Activity</div>
+        </article>
+
+        <article class="bento-card reveal">
+          <div>
+            <div class="bento-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 19h20L12 2z"/></svg>
+            </div>
+            <h3>Google Drive Backup</h3>
+            <p>Back up and restore your playlists, library, and preferences securely to your own Google Drive account.</p>
+          </div>
+          <div class="bento-visual">One-tap cloud backup &amp; restore</div>
+        </article>
+
+        <article class="bento-card reveal">
+          <div>
+            <div class="bento-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            </div>
+            <h3>In-App Release Updater</h3>
+            <p>Check for new <code>K007-K/BitChord</code> IPA releases directly inside Settings with release notes and install links.</p>
+          </div>
+          <div class="bento-visual">Tracks GitHub Releases automatically</div>
+        </article>
+
+        <article class="bento-card reveal">
+          <div>
+            <div class="bento-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <h3>Integrations &amp; Extras</h3>
+            <p>Discord Rich Presence, Last.fm &amp; ListenBrainz scrobbling, Spotify Canvas, CarPlay, Siri App Intents, SMB/WebDAV, and 4 Alternate App Icons.</p>
+          </div>
+          <div class="bento-visual">
+            <div class="pill-list">
+              <span class="mini-pill">Discord RPC</span>
+              <span class="mini-pill">CarPlay</span>
+              <span class="mini-pill">SMB / WebDAV</span>
+              <span class="mini-pill">Offline Downloads</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- How to Download & Install on iOS -->
+    <section id="install" class="section">
+      <div class="section-header reveal">
+        <p class="section-kicker">Sideloading Guide</p>
+        <h2 class="section-title">How to install BitChord on iOS.</h2>
+        <p class="section-desc">
+          Download the latest signed-ready <code>.ipa</code> from GitHub Releases and install it on your iPhone or iPad using AltStore, ESign, or SideStore.
+        </p>
+      </div>
+
+      <div class="install-shell reveal">
+        <div class="install-top">
+          <div>
+            <h3 style="font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 4px;">Latest iOS IPA Release</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">Always download official builds directly from Karthik's GitHub Releases.</p>
+          </div>
+          <a href="https://github.com/K007-K/BitChord/releases" target="_blank" rel="noopener" class="btn btn-primary">
+            Open GitHub Releases &rarr;
+          </a>
+        </div>
+
+        <div class="tablist" role="tablist" aria-label="iOS installation methods">
+          <button type="button" role="tab" id="tab-altstore" aria-selected="true">AltStore</button>
+          <button type="button" role="tab" id="tab-esign" aria-selected="false">ESign</button>
+          <button type="button" role="tab" id="tab-sidestore" aria-selected="false">SideStore</button>
+        </div>
+
+        <div role="tabpanel" aria-labelledby="tab-altstore" tabindex="0">
+          <div class="panel-inner">
+            <div class="step-card">
+              <span class="step-num">1</span>
+              <h4>Set up AltStore</h4>
+              <p>Install AltServer on your Mac or Windows PC, connect your iPhone via USB, and install <strong>AltStore</strong> onto your device.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">2</span>
+              <h4>Download the IPA</h4>
+              <p>Open <a href="https://github.com/K007-K/BitChord/releases" target="_blank" rel="noopener" style="color: var(--accent-blue); text-decoration: underline;">GitHub Releases</a> in Safari on your iPhone and download the latest <code>BitChord.ipa</code> file to Files.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">3</span>
+              <h4>Import into AltStore</h4>
+              <p>Open <strong>AltStore &rarr; My Apps</strong>, tap the <strong>+</strong> button in the top-left corner, and select the downloaded <code>BitChord.ipa</code>.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">4</span>
+              <h4>Sign &amp; Refresh</h4>
+              <p>Wait for AltStore to sign and install (keep AltServer running on the same Wi-Fi). Refresh once every 7 days on free Apple IDs.</p>
+            </div>
+          </div>
+        </div>
+
+        <div role="tabpanel" aria-labelledby="tab-esign" hidden>
+          <div class="panel-inner">
+            <div class="step-card">
+              <span class="step-num">1</span>
+              <h4>Open ESign</h4>
+              <p>Install <strong>ESign</strong> on your iPhone and import your Apple developer or enterprise signing certificate (<code>.p12</code> + <code>.mobileprovision</code>).</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">2</span>
+              <h4>Download the IPA</h4>
+              <p>Grab the latest <code>BitChord.ipa</code> from <a href="https://github.com/K007-K/BitChord/releases" target="_blank" rel="noopener" style="color: var(--accent-blue); text-decoration: underline;">GitHub Releases</a> in Safari.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">3</span>
+              <h4>Import &amp; Sign</h4>
+              <p>In ESign, tap <strong>Import</strong>, choose <code>BitChord.ipa</code>, tap it under <strong>Apps</strong>, select <strong>Signature</strong>, and sign with your certificate.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">4</span>
+              <h4>Install On-Device</h4>
+              <p>Once signing finishes, tap <strong>Install</strong> directly on your iPhone—no computer needed.</p>
+            </div>
+          </div>
+        </div>
+
+        <div role="tabpanel" aria-labelledby="tab-sidestore" hidden>
+          <div class="panel-inner">
+            <div class="step-card">
+              <span class="step-num">1</span>
+              <h4>Install SideStore</h4>
+              <p>Complete the one-time SideStore setup with pairing file and WireGuard/StosVPN enabled on your iPhone.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">2</span>
+              <h4>Download the IPA</h4>
+              <p>Download <code>BitChord.ipa</code> from <a href="https://github.com/K007-K/BitChord/releases" target="_blank" rel="noopener" style="color: var(--accent-blue); text-decoration: underline;">GitHub Releases</a>.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">3</span>
+              <h4>Sideload Wirelessly</h4>
+              <p>Turn on your SideStore VPN, open SideStore &rarr; <strong>My Apps &rarr; +</strong>, and select <code>BitChord.ipa</code>.</p>
+            </div>
+            <div class="step-card">
+              <span class="step-num">4</span>
+              <h4>Auto-Refresh</h4>
+              <p>Refresh BitChord anytime over Wi-Fi directly on your iPhone without touching a PC or Mac.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="trust-note">
+          <strong>First launch tip:</strong> If iOS asks to trust the app, open <strong>Settings &rarr; General &rarr; VPN &amp; Device Management</strong>, tap your Apple ID / certificate under Developer App, and tap <strong>Trust</strong>.
+        </div>
+      </div>
+    </section>
+
+    <!-- Original Developers & Karthik's Contributions -->
+    <section id="credits" class="section">
+      <div class="section-header reveal">
+        <p class="section-kicker">Open Source Lineage</p>
+        <h2 class="section-title">Original creators &amp; contributions.</h2>
+        <p class="section-desc">
+          BitChord stands on the shoulders of open-source contributors. Here is who built the foundation and what we added for this iOS edition.
+        </p>
+      </div>
+
+      <div class="credits-grid">
+        <article class="credit-card highlight reveal">
+          <div class="credit-header">
+            <h3>Karthik (K007-K)</h3>
+            <span class="credit-role">Maintainer &amp; iOS Releases</span>
+          </div>
+          <ul class="credit-list">
+            <li>Updated <strong>Listen Together</strong> to <code>api.bitchord.kushagrasingh.in</code> for full Android APK compatibility</li>
+            <li>Built &amp; wired the <strong>in-app GitHub Release Updater</strong> for future IPA updates</li>
+            <li>Integrated <strong>Google Drive Backup</strong>, <strong>iOS Widgets</strong>, and <strong>Live Activities</strong></li>
+            <li>Updated developer credits, release packaging, and built this BitChord website</li>
+          </ul>
+          <a href="https://github.com/K007-K/BitChord" target="_blank" rel="noopener" class="credit-link">github.com/K007-K/BitChord &rarr;</a>
+        </article>
+
+        <article class="credit-card reveal">
+          <div class="credit-header">
+            <h3>Kushagra Singh (kushagrasinghx)</h3>
+            <span class="credit-role">Original Creator &amp; Android</span>
+          </div>
+          <p>
+            Created BitChord for Android, designed the Listen Together party protocol and backend server, and established the core music streaming architecture.
+          </p>
+          <a href="https://github.com/kushagrasinghx/BitChord" target="_blank" rel="noopener" class="credit-link">github.com/kushagrasinghx/BitChord &rarr;</a>
+        </article>
+
+        <article class="credit-card reveal">
+          <div class="credit-header">
+            <h3>Martin Baguma (bagumamartin)</h3>
+            <span class="credit-role">Upstream iOS Port</span>
+          </div>
+          <p>
+            Built the upstream Kotlin Multiplatform + Swift iOS codebase, native audio engine integration, and cross-platform playback core.
+          </p>
+          <a href="https://github.com/bagumamartin/BitChord" target="_blank" rel="noopener" class="credit-link">github.com/bagumamartin/BitChord &rarr;</a>
+        </article>
+
+        <article class="credit-card reveal">
+          <div class="credit-header">
+            <h3>Maanya (maanya145)</h3>
+            <span class="credit-role">Apple-Native UI &amp; BitChordKit</span>
+          </div>
+          <p>
+            Crafted the Apple-native SwiftUI Now Playing interface, Settings architecture, alternate app icons, Party QR flows, and BitChordKit Swift modules.
+          </p>
+          <a href="https://github.com/maanya145/BitChord-iOS" target="_blank" rel="noopener" class="credit-link">github.com/maanya145/BitChord-iOS &rarr;</a>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>Maintained by Karthik (K007-K) &middot; &copy; 2025 BitChord &middot; 3D iPhone model by <a href="https://sketchfab.com/Polyman_3D" target="_blank" rel="noopener" style="text-decoration: underline;">Polyman_3D</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="text-decoration: underline;">CC BY 4.0</a>)</div>
+      <div class="footer-links">
+        <a href="https://github.com/K007-K/BitChord" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/K007-K/BitChord/releases" target="_blank" rel="noopener">iOS Releases</a>
+        <a href="https://discord.gg/pDdKfrdHY6" target="_blank" rel="noopener">Discord</a>
+        <a href="https://github.com/kushagrasinghx/BitChord" target="_blank" rel="noopener">Upstream Android</a>
+        <a href="https://github.com/K007-K" target="_blank" rel="noopener">K007-K</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 1. Dark/Light Theme Toggle (per modern-web-guidance dark-mode-toggle)
+    const themeMeta = document.querySelector('meta[name="color-scheme"]');
+    const themeBtn = document.getElementById('theme-toggle');
+    const osDarkQuery = matchMedia('(prefers-color-scheme: dark)');
+
+    function applyThemeFromStorage() {
+      try {
+        const stored = localStorage.getItem('color-scheme');
+        themeMeta.content = (stored === 'light' || stored === 'dark') ? stored : 'light dark';
+      } catch {
+        themeMeta.content = 'light dark';
+      }
+    }
+
+    themeBtn.addEventListener('click', () => {
+      let stored = null;
+      try { stored = localStorage.getItem('color-scheme'); } catch {}
+      const systemScheme = osDarkQuery.matches ? 'dark' : 'light';
+      const currentRendered = (stored === 'light' || stored === 'dark') ? stored : systemScheme;
+      const target = currentRendered === 'dark' ? 'light' : 'dark';
+
+      try {
+        if (target === systemScheme) {
+          localStorage.removeItem('color-scheme');
+          themeMeta.content = 'light dark';
+        } else {
+          localStorage.setItem('color-scheme', target);
+          themeMeta.content = target;
+        }
+      } catch {
+        themeMeta.content = target;
+      }
+    });
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'color-scheme') applyThemeFromStorage();
+    });
+
+    // 2. Accessible Tabbed Interface helper (Install Guide)
+    const installTablist = document.querySelector('#install [role="tablist"]');
+    const installTabs = Array.from(installTablist.querySelectorAll('[role="tab"]'));
+    const installPanels = Array.from(document.querySelectorAll('#install [role="tabpanel"]'));
+
+    function selectInstallTab(nextTab) {
+      installTabs.forEach((tab, idx) => {
+        const selected = tab === nextTab;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        installPanels[idx].hidden = !selected;
+        if (selected) {
+          installPanels[idx].setAttribute('tabindex', '0');
+        } else {
+          installPanels[idx].removeAttribute('tabindex');
+        }
+      });
+    }
+
+    installTabs.forEach((tab, idx) => {
+      tab.tabIndex = idx === 0 ? 0 : -1;
+      tab.addEventListener('click', () => selectInstallTab(tab));
+      tab.addEventListener('keydown', (e) => {
+        let nextIdx = null;
+        if (e.key === 'ArrowRight') nextIdx = (idx + 1) % installTabs.length;
+        else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + installTabs.length) % installTabs.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = installTabs.length - 1;
+        if (nextIdx !== null) {
+          e.preventDefault();
+          installTabs[nextIdx].focus();
+          selectInstallTab(installTabs[nextIdx]);
+        }
+      });
+    });
+
+    // 4. Scroll Reveal Fallback (only if CSS Scroll-Driven Animations unsupported)
+    if (!CSS.supports('(animation-timeline: view()) and (animation-range: entry)') &&
+        matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+      const targets = document.querySelectorAll('.reveal');
+      targets.forEach((el) => el.classList.add('reveal-fallback'));
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          }
+        },
+        { threshold: 0.1, rootMargin: '0px 0px -32px 0px' }
+      );
+
+      targets.forEach((el) => observer.observe(el));
+    }
+  </script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    const canvas = document.getElementById('iphone-canvas');
+    const loaderEl = document.getElementById('glb-loader');
+    const phoneStage = document.getElementById('phone-stage');
+    const phoneTabs = Array.from(document.querySelectorAll('.phone-tab'));
+    const swatchBtns = Array.from(document.querySelectorAll('.swatch-btn'));
+    const playToggleBtn = document.getElementById('play-toggle-btn');
+    const resetBtn = document.getElementById('reset-3d-view');
+
+    const SCREEN_ASSETS = {
+      player: { url: 'assets/screen-player.png' },
+      lyrics: { url: 'assets/screen-lyrics.png' },
+      actions: { url: 'assets/screen-actions.png' },
+      widgets: { url: 'assets/screen-widgets.png' }
+    };
+
+    // Interactive OLED Playback State + Composited Screen Canvas
+    const SCREEN_W = 1179;
+    const SCREEN_H = 2556;
+    const screenCanvas = document.createElement('canvas');
+    screenCanvas.width = SCREEN_W;
+    screenCanvas.height = SCREEN_H;
+    const sctx = screenCanvas.getContext('2d');
+    const liveScreenTex = new THREE.CanvasTexture(screenCanvas);
+    liveScreenTex.colorSpace = THREE.SRGBColorSpace;
+    liveScreenTex.flipY = true;
+    liveScreenTex.wrapS = THREE.ClampToEdgeWrapping;
+    liveScreenTex.wrapT = THREE.ClampToEdgeWrapping;
+
+    const loadedImages = new Map();
+    let screenMesh = null;
+    let currentMode = 'player';
+    let isPlaying = true;
+    let isLiked = false;
+    let currentSec = 3;
+    const durationSec = 85;
+    let toastMessage = '';
+    let toastUntil = 0;
+
+    function fmtTime(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function showScreenToast(msg) {
+      toastMessage = msg;
+      toastUntil = performance.now() + 2200;
+      renderLiveScreen();
+    }
+
+    // Clone a horizontal strip directly above/below to erase baked UI cleanly with matched gradient
+    function patchRegion(img, xFrac, yFrac, wFrac, hFrac, sampleYFrac) {
+      const sx = xFrac * img.width;
+      const sw = wFrac * img.width;
+      const sy = sampleYFrac * img.height;
+      const sh = Math.max(2, img.height * 0.008);
+      sctx.drawImage(
+        img, sx, sy, sw, sh,
+        xFrac * SCREEN_W, yFrac * SCREEN_H, wFrac * SCREEN_W, hFrac * SCREEN_H
+      );
+    }
+
+    function drawHeart(cx, cy, r, filled) {
+      sctx.save();
+      sctx.beginPath();
+      sctx.moveTo(cx, cy + r * 0.72);
+      sctx.bezierCurveTo(cx - r * 1.15, cy + r * 0.05, cx - r * 0.95, cy - r * 0.85, cx, cy - r * 0.28);
+      sctx.bezierCurveTo(cx + r * 0.95, cy - r * 0.85, cx + r * 1.15, cy + r * 0.05, cx, cy + r * 0.72);
+      sctx.closePath();
+      if (filled) {
+        sctx.fillStyle = '#ff375f';
+        sctx.fill();
+      } else {
+        sctx.strokeStyle = '#ffffff';
+        sctx.lineWidth = 4.2;
+        sctx.stroke();
+      }
+      sctx.restore();
+    }
+
+    function drawPlayGlyph(cx, cy, size, playing) {
+      sctx.save();
+      sctx.fillStyle = '#ffffff';
+      if (playing) {
+        const bw = size * 0.30;
+        const bh = size * 1.05;
+        const gap = size * 0.22;
+        sctx.beginPath();
+        sctx.roundRect(cx - gap / 2 - bw, cy - bh / 2, bw, bh, bw * 0.32);
+        sctx.roundRect(cx + gap / 2, cy - bh / 2, bw, bh, bw * 0.32);
+        sctx.fill();
+      } else {
+        const r = size * 0.54;
+        sctx.beginPath();
+        sctx.moveTo(cx - r * 0.65, cy - r * 0.85);
+        sctx.lineTo(cx + r * 0.95, cy);
+        sctx.lineTo(cx - r * 0.65, cy + r * 0.85);
+        sctx.closePath();
+        sctx.lineJoin = 'round';
+        sctx.fill();
+      }
+      sctx.restore();
+    }
+
+    function renderLiveScreen(nowMs = performance.now()) {
+      const img = loadedImages.get(currentMode);
+      if (!img) return;
+
+      sctx.clearRect(0, 0, SCREEN_W, SCREEN_H);
+      sctx.drawImage(img, 0, 0, SCREEN_W, SCREEN_H);
+      const progress = Math.min(1, Math.max(0, currentSec / durationSec));
+
+      if (currentMode === 'player') {
+        // Patch Play/Pause button area (sample blended gradient right above & below)
+        patchRegion(img, 0.43, 0.725, 0.14, 0.036, 0.722);
+        patchRegion(img, 0.43, 0.761, 0.14, 0.036, 0.794);
+        drawPlayGlyph(SCREEN_W * 0.502, SCREEN_H * 0.758, 92, isPlaying);
+
+        // Live Scrubber Track (sample clean gap above at 0.634, avoiding Tamil diacritics at 0.625)
+        patchRegion(img, 0.055, 0.639, 0.89, 0.015, 0.634);
+        const sx = SCREEN_W * 0.069;
+        const sy = SCREEN_H * 0.6465;
+        const sw = SCREEN_W * 0.862;
+        sctx.fillStyle = 'rgba(255,255,255,0.28)';
+        sctx.beginPath(); sctx.roundRect(sx, sy - 5, sw, 10, 5); sctx.fill();
+        sctx.fillStyle = '#ffffff';
+        sctx.beginPath(); sctx.roundRect(sx, sy - 5, Math.max(12, sw * progress), 10, 5); sctx.fill();
+        sctx.beginPath(); sctx.arc(sx + sw * progress, sy, 13, 0, Math.PI * 2); sctx.fill();
+
+        // Live Elapsed & Remaining Timecodes aligned with Hi-Res Lossless badge
+        patchRegion(img, 0.055, 0.655, 0.14, 0.018, 0.680);
+        patchRegion(img, 0.805, 0.655, 0.14, 0.018, 0.680);
+        sctx.font = '500 26px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+        sctx.fillStyle = 'rgba(255,255,255,0.72)';
+        sctx.textBaseline = 'alphabetic';
+        sctx.textAlign = 'left'; sctx.fillText(fmtTime(currentSec), sx, SCREEN_H * 0.6685);
+        sctx.textAlign = 'right'; sctx.fillText('-' + fmtTime(durationSec - currentSec), sx + sw, SCREEN_H * 0.6685);
+
+        // Heart overlay inside circular button when toggled ON
+        if (isLiked) {
+          sctx.fillStyle = 'rgba(255,255,255,0.16)';
+          sctx.beginPath(); sctx.arc(SCREEN_W * 0.763, SCREEN_H * 0.556, 40, 0, Math.PI * 2); sctx.fill();
+          drawHeart(SCREEN_W * 0.763, SCREEN_H * 0.557, 17, true);
+        }
+      } else if (currentMode === 'lyrics') {
+        // Patch center Play/Pause on Lyrics view
+        patchRegion(img, 0.43, 0.735, 0.14, 0.036, 0.732);
+        patchRegion(img, 0.43, 0.771, 0.14, 0.036, 0.805);
+        drawPlayGlyph(SCREEN_W * 0.502, SCREEN_H * 0.767, 94, isPlaying);
+
+        // Live Scrubber + Timestamps on Lyrics view (capsule is at y=0.651..0.661, clean row above at 0.640)
+        patchRegion(img, 0.075, 0.648, 0.85, 0.017, 0.640);
+        const sx = SCREEN_W * 0.088;
+        const sy = SCREEN_H * 0.6565;
+        const sw = SCREEN_W * 0.824;
+        sctx.fillStyle = 'rgba(255,255,255,0.28)';
+        sctx.beginPath(); sctx.roundRect(sx, sy - 5, sw, 10, 5); sctx.fill();
+        sctx.fillStyle = '#ffffff';
+        sctx.beginPath(); sctx.roundRect(sx, sy - 5, Math.max(12, sw * progress), 10, 5); sctx.fill();
+        sctx.beginPath(); sctx.arc(sx + sw * progress, sy, 13, 0, Math.PI * 2); sctx.fill();
+
+        patchRegion(img, 0.085, 0.683, 0.12, 0.016, 0.710);
+        patchRegion(img, 0.795, 0.683, 0.13, 0.016, 0.710);
+        sctx.font = '500 26px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+        sctx.fillStyle = 'rgba(255,255,255,0.72)';
+        sctx.textBaseline = 'alphabetic';
+        sctx.textAlign = 'left'; sctx.fillText(fmtTime(currentSec), sx, SCREEN_H * 0.695);
+        sctx.textAlign = 'right'; sctx.fillText('-' + fmtTime(durationSec - currentSec), sx + sw, SCREEN_H * 0.695);
+
+        if (isLiked) {
+          drawHeart(SCREEN_W * 0.785, SCREEN_H * 0.116, 16, true);
+        }
+      } else if (currentMode === 'actions') {
+        patchRegion(img, 0.43, 0.735, 0.14, 0.036, 0.732);
+        patchRegion(img, 0.43, 0.771, 0.14, 0.036, 0.805);
+        drawPlayGlyph(SCREEN_W * 0.502, SCREEN_H * 0.767, 94, isPlaying);
+      } else if (currentMode === 'widgets') {
+        // Mini-Player Play/Pause glyph (samples dark pill backdrop to its left)
+        patchRegion(img, 0.725, 0.842, 0.065, 0.044, 0.842);
+        sctx.drawImage(
+          img, img.width * 0.68, img.height * 0.842, img.width * 0.04, img.height * 0.044,
+          SCREEN_W * 0.725, SCREEN_H * 0.842, SCREEN_W * 0.065, SCREEN_H * 0.044
+        );
+        drawPlayGlyph(SCREEN_W * 0.755, SCREEN_H * 0.864, 42, isPlaying);
+      }
+
+      // Native Frosted Status Toast overlay for interactive feedback
+      if (toastMessage && nowMs < toastUntil) {
+        sctx.save();
+        sctx.font = '600 30px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+        const tw = Math.min(SCREEN_W * 0.78, sctx.measureText(toastMessage).width + 72);
+        const tx = (SCREEN_W - tw) / 2;
+        const ty = SCREEN_H * 0.092;
+        sctx.fillStyle = 'rgba(24, 24, 30, 0.88)';
+        sctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+        sctx.lineWidth = 2;
+        sctx.beginPath(); sctx.roundRect(tx, ty, tw, 76, 38); sctx.fill(); sctx.stroke();
+        sctx.fillStyle = '#ffffff';
+        sctx.textAlign = 'center';
+        sctx.textBaseline = 'middle';
+        sctx.fillText(toastMessage, SCREEN_W / 2, ty + 39);
+        sctx.restore();
+      }
+
+      liveScreenTex.needsUpdate = true;
+    }
+
+    function setScreenMode(modeKey) {
+      if (!SCREEN_ASSETS[modeKey]) return;
+      toastMessage = '';
+      toastUntil = 0;
+      currentMode = modeKey;
+      phoneStage.dataset.mode = modeKey;
+      phoneTabs.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === modeKey)));
+      if (loadedImages.has(modeKey)) {
+        renderLiveScreen();
+      } else {
+        loadScreenImage(modeKey).then(() => renderLiveScreen());
+      }
+    }
+
+    function togglePlayback() {
+      isPlaying = !isPlaying;
+      playToggleBtn.setAttribute('aria-pressed', String(isPlaying));
+      playToggleBtn.innerHTML = isPlaying ? '&#10074;&#10074; Pause' : '&#9654; Play';
+      renderLiveScreen();
+    }
+
+    // Never recolor screen, front glass, Dynamic Island, camera lens wells, sapphire optics, flash glass, or LiDAR
+    const KEEP_DARK_MATS = new Set([
+      'pIJKfZsazmcpEiU', // OLED Screen
+      'zFdeDaGNRwzccye', // Front Bezel
+      'ujsvqBWRMnqdwPx', // Dynamic Island
+      'sxNzrmuTqVeaXdg', // Front Camera Glass
+      'TBLSREBUyLMVtJa', // Front Camera Ring
+      'hUlRcbieVuIiOXG', // Front Glass Bezel Lip
+      'jlzuBkUzuJqgiAK', // Camera Inner Black Barrels
+      'xNrofRCqOXXHVZt', // Rear Camera Sapphire Glass (transparent)
+      'yQQySPTfbEJufve', // Inner Camera Optics (blue/black)
+      'hiVunnLeAHkwGEo', // Flash Glass
+      'HGhEhpqSBZRnjHC', // Flash Diffuser Ring
+      'vhaEJjZoqGtyLdo', // LiDAR Scanner (deep black)
+      'yiDkEwDSyEhavuP'  // Rear Mic Pinhole
+    ]);
+
+    const BACK_GLASS_MATS = new Set(['yhcAXNGcJWCqtIS', 'oZRkkORNzkufnGD']);
+    const PLATEAU_GLASS_MATS = new Set(['bCgzXjHOanGdTFV', 'PaletteMaterial003']);
+    const LOGO_MAT_NAME = 'PaletteMaterial004';
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    const scene = new THREE.Scene();
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    const DEFAULT_CAM_POS = new THREE.Vector3(0.85, 0.22, 5.15);
+    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
+    camera.position.copy(DEFAULT_CAM_POS);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    controls.rotateSpeed = 0.72;
+
+    // Neutral crisp Apple studio lighting so White & Black Titanium render cleanly on all angles
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(4, 6, 5);
+    scene.add(keyLight);
+
+    const backKeyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    backKeyLight.position.set(-4, 5, -5);
+    scene.add(backKeyLight);
+
+    const rimLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    rimLight.position.set(5, -2, -3);
+    scene.add(rimLight);
+
+    const phoneRig = new THREE.Group();
+    scene.add(phoneRig);
+
+    let screenMaterial = null;
+    const finishParts = [];
+    const retonedTexCache = new Map();
+    const textureCache = new Map();
+    const texLoader = new THREE.TextureLoader();
+
+    function normalizeScreenUVs(mesh) {
+      const geo = mesh.geometry;
+      geo.computeBoundingBox();
+      const bb = geo.boundingBox;
+      const pos = geo.attributes.position;
+      const uvs = new Float32Array(pos.count * 2);
+      const spanX = bb.max.x - bb.min.x || 1;
+      const spanY = bb.max.y - bb.min.y || 1;
+      for (let i = 0; i < pos.count; i++) {
+        // After Ry(PI), screen (-Z) faces +Z camera: +X local -> viewer left (u=0), +Y local -> top (v=1)
+        uvs[i * 2] = 1 - (pos.getX(i) - bb.min.x) / spanX;
+        uvs[i * 2 + 1] = (pos.getY(i) - bb.min.y) / spanY;
+      }
+      geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geo.attributes.uv.needsUpdate = true;
+    }
+
+    // Re-tone an existing albedo map's RGB while preserving its original Alpha mask and grain!
+    function getRetonedTexture(origTex, targetRgb, liftStrength = 1) {
+      if (!origTex || !origTex.image) return null;
+      const cacheKey = `${origTex.uuid}_${targetRgb.join(',')}`;
+      if (retonedTexCache.has(cacheKey)) return retonedTexCache.get(cacheKey);
+
+      const img = origTex.image;
+      const w = img.width || img.naturalWidth;
+      const h = img.height || img.naturalHeight;
+      if (!w || !h) return origTex;
+
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const d = imgData.data;
+
+      // Measure average luminance so we normalize relative surface grain cleanly onto targetRgb
+      let lumSum = 0;
+      const pxCount = w * h;
+      for (let i = 0; i < d.length; i += 4) {
+        lumSum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+      }
+      const avgLum = Math.max(lumSum / pxCount, 1);
+
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+        const ratio = Math.min(Math.max(lum / avgLum, 0.75), 1.28);
+        const factor = 1 + (ratio - 1) * liftStrength;
+        d[i]     = Math.min(255, Math.round(targetRgb[0] * factor));
+        d[i + 1] = Math.min(255, Math.round(targetRgb[1] * factor));
+        d[i + 2] = Math.min(255, Math.round(targetRgb[2] * factor));
+        // Preserve original alpha d[i + 3] untouched!
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      const newTex = new THREE.CanvasTexture(c);
+      newTex.colorSpace = origTex.colorSpace;
+      newTex.flipY = origTex.flipY;
+      newTex.wrapS = origTex.wrapS;
+      newTex.wrapT = origTex.wrapT;
+      newTex.needsUpdate = true;
+      retonedTexCache.set(cacheKey, newTex);
+      return newTex;
+    }
+
+    function loadScreenImage(modeKey) {
+      if (loadedImages.has(modeKey)) return Promise.resolve(loadedImages.get(modeKey));
+      return new Promise((res, rej) => {
+        const im = new Image();
+        im.onload = () => { loadedImages.set(modeKey, im); res(im); };
+        im.onerror = rej;
+        im.src = SCREEN_ASSETS[modeKey].url;
+      });
+    }
+
+    function bindLiveScreenTexture() {
+      if (!screenMaterial) return;
+      liveScreenTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      screenMaterial.map = null;
+      screenMaterial.color = new THREE.Color(0x000000);
+      screenMaterial.emissive = new THREE.Color(0xffffff);
+      screenMaterial.emissiveIntensity = 1;
+      screenMaterial.emissiveMap = liveScreenTex;
+      screenMaterial.toneMapped = false;
+      screenMaterial.metalness = 0;
+      screenMaterial.roughness = 1;
+      screenMaterial.envMapIntensity = 0;
+      screenMaterial.needsUpdate = true;
+      renderLiveScreen();
+    }
+
+    const FINISH_PROFILES = {
+      black: {
+        frameHex: '#2e2f34', frameRgb: [46, 47, 52], frameMetal: 0.86, frameRough: 0.24,
+        backHex: '#1b1c20',  backRgb: [28, 29, 34],   backMetal: 0.10, backRough: 0.44,
+        plateauHex: '#202126', plateauRgb: [32, 33, 38],
+        logoHex: '#4f5158',  logoRgb: [79, 81, 88]
+      },
+      white: {
+        frameHex: '#e4e5e8', frameRgb: [228, 229, 232], frameMetal: 0.88, frameRough: 0.22,
+        backHex: '#f5f5f7',  backRgb: [245, 245, 247], backMetal: 0.06, backRough: 0.38,
+        plateauHex: '#ececef', plateauRgb: [236, 236, 239],
+        logoHex: '#d2d4da',  logoRgb: [210, 212, 218]
+      }
+    };
+    const metaTheme = document.querySelector('meta[name="color-scheme"]');
+    const osDarkMedia = matchMedia('(prefers-color-scheme: dark)');
+
+    function getRenderedScheme() {
+      const c = metaTheme?.getAttribute('content');
+      if (c === 'dark' || c === 'light') return c;
+      return osDarkMedia.matches ? 'dark' : 'light';
+    }
+
+    function applyFinish(finishKey) {
+      const p = FINISH_PROFILES[finishKey] || FINISH_PROFILES.white;
+      for (const { mat, origMap, role } of finishParts) {
+        if (role === 'logo') {
+          mat.map = origMap ? getRetonedTexture(origMap, p.logoRgb, 0.3) : null;
+          mat.color.set(origMap ? '#ffffff' : p.logoHex);
+          mat.metalness = 0.88;
+          mat.roughness = 0.10;
+          mat.emissive.set('#000000');
+        } else if (role === 'back') {
+          mat.map = origMap ? getRetonedTexture(origMap, p.backRgb, 0.4) : null;
+          mat.color.set(origMap ? '#ffffff' : p.backHex);
+          mat.metalness = p.backMetal;
+          mat.roughness = p.backRough;
+        } else if (role === 'plateau') {
+          mat.map = origMap ? getRetonedTexture(origMap, p.plateauRgb, 0.5) : null;
+          mat.color.set(origMap ? '#ffffff' : p.plateauHex);
+          mat.metalness = 0.12;
+          mat.roughness = 0.34;
+        } else {
+          // Titanium rails, buttons, mmWave pill & camera outer metal rings keep brushed metal grain
+          mat.map = origMap ? getRetonedTexture(origMap, p.frameRgb, 0.85) : null;
+          mat.color.set(origMap ? '#ffffff' : p.frameHex);
+          mat.metalness = p.frameMetal;
+          mat.roughness = p.frameRough;
+          mat.envMapIntensity = 1.15;
+        }
+        mat.needsUpdate = true;
+      }
+    }
+
+    function selectFinish(finishKey) {
+      swatchBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.finish === finishKey)));
+      applyFinish(finishKey);
+    }
+
+    function syncFinishWithTheme() {
+      // Black Titanium in light mode, White Titanium in dark mode
+      selectFinish(getRenderedScheme() === 'dark' ? 'white' : 'black');
+    }
+
+    if (metaTheme) {
+      new MutationObserver(() => syncFinishWithTheme()).observe(metaTheme, {
+        attributes: true,
+        attributeFilter: ['content']
+      });
+    }
+    osDarkMedia.addEventListener('change', () => {
+      if (metaTheme?.getAttribute('content') === 'light dark') syncFinishWithTheme();
+    });
+
+    // Load 887KB GLB + initial BitChord Player PNG in parallel before showing 3D model
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
+
+    const loadGltf = () => new Promise((res, rej) => gltfLoader.load('assets/iphone.glb', res, undefined, rej));
+
+    Promise.all([loadGltf(), loadScreenImage('player')])
+      .then(([gltf]) => {
+        const root = gltf.scene;
+        // Turn screen (-Z) toward +Z camera
+        root.rotation.set(0, Math.PI, 0);
+        root.updateMatrixWorld(true);
+
+        const box = new THREE.Box3().setFromObject(root);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        root.scale.setScalar(2.95 / size.y);
+        root.updateMatrixWorld(true);
+        const center = new THREE.Box3().setFromObject(root).getCenter(new THREE.Vector3());
+        root.position.sub(center);
+
+        const seenMats = new Set();
+        root.traverse((obj) => {
+          if (!obj.isMesh) return;
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          for (const m of mats) {
+            if (!m) continue;
+            if (m.name === 'pIJKfZsazmcpEiU') {
+              normalizeScreenUVs(obj);
+              screenMesh = obj;
+              screenMaterial = m;
+              continue;
+            }
+            if (seenMats.has(m)) continue;
+            seenMats.add(m);
+
+            if (!KEEP_DARK_MATS.has(m.name)) {
+              const role = m.name === LOGO_MAT_NAME
+                ? 'logo'
+                : BACK_GLASS_MATS.has(m.name)
+                  ? 'back'
+                  : PLATEAU_GLASS_MATS.has(m.name)
+                    ? 'plateau'
+                    : 'frame';
+              finishParts.push({ mat: m, origMap: m.map || null, role });
+            } else if (m.name === 'jlzuBkUzuJqgiAK') {
+              // Deep optical black camera wells inside titanium rings
+              m.color.set('#050508');
+              m.metalness = 0.25;
+              m.roughness = 0.22;
+              m.needsUpdate = true;
+            } else if (m.name === 'vhaEJjZoqGtyLdo') {
+              // Ensure LiDAR circle stays crisp dark black on top of camera plateau
+              m.color.set('#050507');
+              m.polygonOffset = true;
+              m.polygonOffsetFactor = -4;
+              m.needsUpdate = true;
+              obj.renderOrder = 2;
+            } else if (
+              m.roughness !== undefined &&
+              m.roughness <= 0.1 &&
+              m.metalness !== undefined &&
+              !(m.map || m.emissiveMap || m.normalMap)
+            ) {
+              // Rich deep black front OLED bezel & Dynamic Island pill without gray glare
+              m.metalness = 0;
+              m.roughness = 0.85;
+              m.envMapIntensity = 0.08;
+              m.needsUpdate = true;
+            }
+          }
+        });
+
+        phoneRig.add(root);
+        syncFinishWithTheme();
+        bindLiveScreenTexture();
+        loaderEl.style.display = 'none';
+
+        // Background preload remaining screenshots
+        Object.keys(SCREEN_ASSETS).forEach((k) => loadScreenImage(k));
+      })
+      .catch(() => {
+        loaderEl.textContent = '3D preview unavailable';
+      });
+
+    // Direct 3D OLED Screen Touch/Hover Raycasting
+    const raycaster = new THREE.Raycaster();
+    const pointerNDC = new THREE.Vector2();
+    let downPt = { x: 0, y: 0 };
+
+    function getScreenHit(clientX, clientY) {
+      if (!screenMesh) return null;
+      const rect = canvas.getBoundingClientRect();
+      pointerNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      pointerNDC.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointerNDC, camera);
+      const hits = raycaster.intersectObject(screenMesh);
+      if (!hits.length || !hits[0].uv) return null;
+      return { x: hits[0].uv.x, y: 1 - hits[0].uv.y };
+    }
+
+    function isInteractiveHit(pt) {
+      if (!pt) return false;
+      const { x, y } = pt;
+      if (currentMode === 'player') {
+        return (
+          (y > 0.70 && y < 0.82 && x > 0.18 && x < 0.84) || // Transport
+          (y > 0.625 && y < 0.668 && x > 0.05 && x < 0.95) || // Scrubber
+          (y > 0.52 && y < 0.59 && x > 0.71 && x < 0.94) || // Heart / More
+          (y > 0.59 && y < 0.635) || // Lyrics preview line
+          (y > 0.87 && y < 0.95 && x < 0.22) // Bottom quote button
+        );
+      }
+      if (currentMode === 'lyrics') {
+        return (
+          (y > 0.71 && y < 0.83 && x > 0.18 && x < 0.84) ||
+          (y > 0.638 && y < 0.675 && x > 0.07 && x < 0.93) ||
+          (y > 0.08 && y < 0.16 && x > 0.72 && x < 0.85) ||
+          (y > 0.87 && y < 0.94 && x < 0.25)
+        );
+      }
+      if (currentMode === 'actions') {
+        return (x > 0.30 && y > 0.07 && y < 0.65) || (y > 0.71 && y < 0.83);
+      }
+      if (currentMode === 'widgets') {
+        return y > 0.82 && y < 0.90;
+      }
+      return false;
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      downPt = { x: e.clientX, y: e.clientY };
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      const hit = getScreenHit(e.clientX, e.clientY);
+      canvas.style.cursor = isInteractiveHit(hit) ? 'pointer' : 'grab';
+    });
+
+    canvas.addEventListener('pointerup', (e) => {
+      if (Math.hypot(e.clientX - downPt.x, e.clientY - downPt.y) > 7) return;
+      const pt = getScreenHit(e.clientX, e.clientY);
+      if (!pt) return;
+      const { x, y } = pt;
+
+      if (currentMode === 'player') {
+        if (y > 0.70 && y < 0.82) {
+          if (x > 0.40 && x < 0.60) togglePlayback();
+          else if (x >= 0.18 && x <= 0.40) { currentSec = 0; renderLiveScreen(); showScreenToast('Restarted track'); }
+          else if (x >= 0.60 && x <= 0.84) { currentSec = Math.min(durationSec - 1, currentSec + 15); renderLiveScreen(); showScreenToast('Skipped +15s'); }
+        } else if (y > 0.625 && y < 0.668 && x > 0.05 && x < 0.95) {
+          currentSec = Math.round(Math.min(1, Math.max(0, (x - 0.069) / 0.862)) * durationSec);
+          renderLiveScreen();
+        } else if (y > 0.52 && y < 0.59 && x > 0.71 && x < 0.82) {
+          isLiked = !isLiked;
+          renderLiveScreen();
+          showScreenToast(isLiked ? 'Added to Liked Songs' : 'Removed from Liked');
+        } else if (y > 0.52 && y < 0.59 && x >= 0.82 && x < 0.95) {
+          setScreenMode('actions');
+        } else if ((y > 0.59 && y < 0.635) || (y > 0.87 && y < 0.95 && x < 0.22)) {
+          setScreenMode('lyrics');
+        }
+      } else if (currentMode === 'lyrics') {
+        if (y > 0.71 && y < 0.83) {
+          if (x > 0.40 && x < 0.60) togglePlayback();
+          else if (x >= 0.18 && x <= 0.40) { currentSec = Math.max(0, currentSec - 10); renderLiveScreen(); }
+          else if (x >= 0.60 && x <= 0.84) { currentSec = Math.min(durationSec - 1, currentSec + 10); renderLiveScreen(); }
+        } else if (y > 0.638 && y < 0.675 && x > 0.07 && x < 0.93) {
+          currentSec = Math.round(Math.min(1, Math.max(0, (x - 0.088) / 0.824)) * durationSec);
+          renderLiveScreen();
+        } else if (y > 0.08 && y < 0.16 && x > 0.72 && x < 0.85) {
+          isLiked = !isLiked;
+          renderLiveScreen();
+          showScreenToast(isLiked ? 'Added to Liked Songs' : 'Removed from Liked');
+        } else if (y > 0.87 && y < 0.94 && x < 0.25) {
+          setScreenMode('player');
+        }
+      } else if (currentMode === 'actions') {
+        if (x > 0.30 && y > 0.07 && y < 0.65) {
+          const actions = [
+            [0.14, 'Lyrics Offset · 0.0s'],
+            [0.21, 'FLAC · 24-bit · 48.0 kHz'],
+            [0.27, 'Sleep timer · 15 min'],
+            [0.33, 'Share link copied'],
+            [0.39, 'Downloading FLAC…'],
+            [0.45, 'Hi-Res Lossless active'],
+            [0.52, 'Audio mode enabled'],
+            [0.58, 'Added to Playlist'],
+            [0.65, 'Updated preferences']
+          ];
+          const found = actions.find(([maxY]) => y <= maxY) || actions[actions.length - 1];
+          showScreenToast(found[1]);
+        } else if (y > 0.71 && y < 0.83 && x > 0.40 && x < 0.60) {
+          togglePlayback();
+        } else {
+          setScreenMode('player');
+        }
+      } else if (currentMode === 'widgets') {
+        if (y > 0.82 && y < 0.90) {
+          if (x > 0.70 && x < 0.83) togglePlayback();
+          else if (x >= 0.83) { currentSec = (currentSec + 15) % durationSec; showScreenToast('Next track'); }
+          else setScreenMode('player');
+        } else if (y > 0.15 && y < 0.78) {
+          showScreenToast('BitChord Widget ready');
+        }
+      }
+    });
+
+    phoneTabs.forEach((btn) => {
+      btn.addEventListener('click', () => setScreenMode(btn.dataset.mode));
+    });
+
+    playToggleBtn.addEventListener('click', togglePlayback);
+
+    swatchBtns.forEach((btn) => {
+      btn.addEventListener('click', () => selectFinish(btn.dataset.finish));
+    });
+
+    resetBtn.addEventListener('click', () => {
+      camera.position.copy(DEFAULT_CAM_POS);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    });
+
+    function resize3D() {
+      const wrap = canvas.parentElement;
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize3D);
+    resize3D();
+
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let lastTick = performance.now();
+    let lastDraw = 0;
+
+    function animate(now) {
+      requestAnimationFrame(animate);
+      if (!reduceMotion) {
+        phoneRig.position.y = Math.sin(now * 0.0013) * 0.035;
+      }
+      if (isPlaying) {
+        const dt = (now - lastTick) / 1000;
+        if (dt > 0) {
+          currentSec = (currentSec + dt) % durationSec;
+          lastTick = now;
+        }
+        if (now - lastDraw > 120) {
+          lastDraw = now;
+          renderLiveScreen(now);
+        }
+      } else {
+        lastTick = now;
+        if (toastMessage && now >= toastUntil) {
+          toastMessage = '';
+          renderLiveScreen(now);
+        }
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
