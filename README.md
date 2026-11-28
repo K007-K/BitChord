@@ -24,7 +24,7 @@ Customizable widgets, in-app updates, Automix, Hi-Res and sideload-friendly.
 </div>
 
 > [!IMPORTANT]
-> BitChord is an unofficial Apple-platform build maintained by [K007-K](https://github.com/K007-K), based on the iOS port by [bagumamartin](https://github.com/bagumamartin/BitChord). It is not affiliated with, endorsed by, or connected to YouTube or Google in any way. Use it at your own discretion.
+> BitChord is an unofficial Apple-platform build maintained by [K007-K](https://github.com/K007-K), based on the iOS port by [maanya145](https://github.com/maanya145/BitChord-iOS). It is not affiliated with, endorsed by, or connected to YouTube or Google in any way. Use it at your own discretion.
 
 ## Download
 
@@ -169,7 +169,7 @@ Bug reports, ideas and pull requests are welcome in [Issues](https://github.com/
 
 **And the port this build is based on**
 
-<a href="https://github.com/bagumamartin/BitChord/graphs/contributors"><img src="https://contrib.rocks/image?repo=bagumamartin/BitChord&max=60&columns=12" alt="Contributors to bagumamartin/BitChord"></a>
+<a href="https://github.com/maanya145/BitChord-iOS/graphs/contributors"><img src="https://contrib.rocks/image?repo=maanya145/BitChord-iOS&max=60&columns=12" alt="Contributors to maanya145/BitChord-iOS"></a>
 
 </div>
 
@@ -184,7 +184,7 @@ BitChord is an independent, unofficial third-party music player and client. It i
 
 ## Credits and Licenses
 
-Based on the iOS port by [bagumamartin](https://github.com/bagumamartin/BitChord), which is itself derived from [BitChord](https://github.com/kushagrasinghx/BitChord), Copyright © Kushagra Singh and BitChord contributors, licensed under GPLv3. This build and additions Copyright © 2026 K007-K, also under GPLv3.
+Based on the iOS port by [maanya145](https://github.com/maanya145/BitChord-iOS), which is itself derived from [BitChord](https://github.com/kushagrasinghx/BitChord), Copyright © Kushagra Singh and BitChord contributors, licensed under GPLv3. This build and additions Copyright © 2026 K007-K, also under GPLv3.
 
 YouTube stream extraction uses [InnerTubeX](https://github.com/MetrolistGroup/innertubex). Some analyzer code was ported from [Orchard](https://github.com/SFG5453/Orchard) by SFG545 through BitChord's Android implementation; those files retain their AGPLv3 terms. The upstream README credits [binimum/am-lyrics](https://github.com/binimum/am-lyrics) for the Apple-like lyrics animation; that credit is preserved here.
 
