@@ -79,11 +79,14 @@ struct SettingsScreen: View {
                 if search.isBlank {
                     Section {
                         SettingsColophon()
+                            .padding(.top, 8)
+                            .padding(.bottom, 16)
                             .listRowBackground(Color.clear)
                     }
                 }
             }
             .settingsGroupList()
+            .collectionsListBottomInset()
             // What is left after a keystroke is a different list, and the offset the last one was
             // scrolled to means nothing in it.
             .onChange(of: query) { _, _ in
