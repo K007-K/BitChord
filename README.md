@@ -21,7 +21,7 @@ Open-source YouTube Music client · Customizable widgets · In-app updates · Au
 
 <br>
 
-<img src=".github/assets/banner.jpg" alt="BitChord on iPhone — Now Playing, Lyrics and Artist view" width="900">
+<img src=".github/assets/showcase.png" alt="BitChord on iPhone — Now Playing, Lyrics and Artist view" width="900">
 
 <br>
 
@@ -167,13 +167,13 @@ Bug reports, ideas and pull requests are welcome in [Issues](https://github.com/
 
 <div align="center">
 
-**Contributors to this build**
+**Maintained by**
 
-<a href="https://github.com/K007-K/BitChord/graphs/contributors"><img src="https://contrib.rocks/image?repo=K007-K/BitChord" alt="Contributors to K007-K/BitChord"></a>
+<a href="https://github.com/K007-K"><img src="https://github.com/K007-K.png" width="64" height="64" style="border-radius:50%" alt="K007-K"></a>
 
-**And the port this build is based on**
+**iOS port based on work by**
 
-<a href="https://github.com/maanya145/BitChord-iOS/graphs/contributors"><img src="https://contrib.rocks/image?repo=maanya145/BitChord-iOS&max=60&columns=12" alt="Contributors to maanya145/BitChord-iOS"></a>
+<a href="https://github.com/maanya145"><img src="https://github.com/maanya145.png" width="64" height="64" style="border-radius:50%" alt="maanya145"></a>
 
 </div>
 
