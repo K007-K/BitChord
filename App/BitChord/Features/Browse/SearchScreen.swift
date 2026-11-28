@@ -52,6 +52,20 @@ struct SearchScreen: View {
         // so the bar's title is always up, as on Android.
         .navigationTitle(L10n.search)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if fieldFocused {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        fieldFocused = false
+                    } label: {
+                        Image(systemName: "chevron.backward")
+                            .fontWeight(.semibold)
+                    }
+                    .accessibilityLabel(L10n.back)
+                    .accessibilityIdentifier("search.dismissKeyboard")
+                }
+            }
+        }
         .onAppear {
             if search.catalog == nil { search.catalog = model.repository }
             #if DEBUG
