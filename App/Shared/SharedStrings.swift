@@ -56,6 +56,12 @@ enum SharedStrings {
     static var widgetSquareDescription: String { tr("widget_square_description", "Album art with playback controls, in a square.") }
     static var widgetWideDescription: String { tr("widget_wide_description", "Album art with the track and playback controls, full width.") }
     static var widgetPillDescription: String { tr("widget_pill_description", "The track with Like, Shuffle and playback controls, in a single row.") }
+    static var widgetLargeLabel: String { tr("widget_large_label", "Now playing 4×4") }
+    static var widgetLargeDescription: String { tr("widget_large_description", "Full album art with track info and all playback controls, in a large square.") }
+    static var widgetLockCircularLabel: String { tr("widget_lock_circular_label", "Lock Screen circular") }
+    static var widgetLockCircularDescription: String { tr("widget_lock_circular_description", "Album art with a play/pause button on the Lock Screen.") }
+    static var widgetLockRectangularLabel: String { tr("widget_lock_rectangular_label", "Lock Screen bar") }
+    static var widgetLockRectangularDescription: String { tr("widget_lock_rectangular_description", "Track name, artist and playback controls on the Lock Screen.") }
     static var widgetPreviewTitle: String { tr("widget_preview_title", "Song title") }
     static var widgetPreviewArtist: String { tr("widget_preview_artist", "Artist") }
     static var like: String { tr("like", "Like") }

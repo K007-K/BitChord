@@ -127,7 +127,7 @@ struct WidgetControl<Intent: AppIntent>: View {
     }
 }
 
-private extension View {
+extension View {
     @ViewBuilder
     func widgetBackground<Background: View>(_ canvas: WidgetCanvas, @ViewBuilder _ background: () -> Background) -> some View {
         switch canvas {
@@ -141,82 +141,40 @@ private extension View {
 }
 
 /// The 2×2 (systemSmall): full-bleed art, the title on its own line over three centred buttons.
+/// Supports `.artwork` (original look), `.glass` and `.minimal` styles.
 struct CompactWidgetView: View {
     var snapshot: NowPlayingSnapshot?
     var art: WidgetArt?
+    var style: WidgetStyle = .artwork
     var canvas: WidgetCanvas = .widgetKit
 
     static let band: CGFloat = 66
 
     var body: some View {
         let face = WidgetFace(snapshot)
-        VStack(spacing: 3) {
-            Spacer(minLength: 0)
-            Text(face.title)
-                .font(.system(.footnote, weight: .semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 4)
-            HStack(spacing: 0) {
-                WidgetControl(intent: PreviousTrackIntent(), symbol: "backward.fill", label: SharedStrings.widgetPrevious,
-                              opacity: face.opacity(.previous), isLive: face.hasTrack, glyph: 17, height: 40)
-                WidgetControl(intent: TogglePlaybackIntent(), symbol: face.toggleSymbol, label: face.toggleLabel,
-                              opacity: face.opacity(.togglePlayPause), isLive: face.hasTrack, glyph: 20, height: 40)
-                WidgetControl(intent: NextTrackIntent(), symbol: "forward.fill", label: SharedStrings.widgetNext,
-                              opacity: face.opacity(.next), isLive: face.hasTrack, glyph: 17, height: 40)
-            }
-        }
-        .padding(.horizontal, 8)
-        .padding(.bottom, 4)
-        .dynamicTypeSize(...DynamicTypeSize.xLarge)
-        .widgetBackground(canvas) { WidgetCoverBackdrop(art: art, band: Self.band) }
-        .widgetURL(SharedConstants.openPlayerURL)
+        StyledCompactContent(face: face, art: art, style: style)
+            .dynamicTypeSize(...DynamicTypeSize.xLarge)
+            .styleBackground(style, art: art, band: Self.band, canvas: canvas)
+            .widgetURL(SharedConstants.openPlayerURL)
     }
 }
 
 /// The 4×2 (systemMedium): the same cover, with the title and artist beside the three buttons.
+/// Supports `.artwork`, `.glass` and `.minimal` styles.
 struct WideWidgetView: View {
     var snapshot: NowPlayingSnapshot?
     var art: WidgetArt?
+    var style: WidgetStyle = .artwork
     var canvas: WidgetCanvas = .widgetKit
 
     static let band: CGFloat = 60
 
     var body: some View {
         let face = WidgetFace(snapshot)
-        VStack(spacing: 0) {
-            Spacer(minLength: 0)
-            HStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(face.title)
-                        .font(.system(.subheadline, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                    if face.hasTrack, let artist = face.artist {
-                        Text(artist)
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.7))
-                            .lineLimit(1)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.trailing, 8)
-                WidgetControl(intent: PreviousTrackIntent(), symbol: "backward.fill", label: SharedStrings.widgetPrevious,
-                              opacity: face.opacity(.previous), isLive: face.hasTrack, glyph: 18, height: 44, fillsWidth: false)
-                WidgetControl(intent: TogglePlaybackIntent(), symbol: face.toggleSymbol, label: face.toggleLabel,
-                              opacity: face.opacity(.togglePlayPause), isLive: face.hasTrack, glyph: 22, height: 44, fillsWidth: false)
-                WidgetControl(intent: NextTrackIntent(), symbol: "forward.fill", label: SharedStrings.widgetNext,
-                              opacity: face.opacity(.next), isLive: face.hasTrack, glyph: 18, height: 44, fillsWidth: false)
-            }
-            .frame(height: Self.band)
-            .padding(.leading, 14)
-            .padding(.trailing, 4)
-        }
-        .dynamicTypeSize(...DynamicTypeSize.xLarge)
-        .widgetBackground(canvas) { WidgetCoverBackdrop(art: art, band: Self.band) }
-        .widgetURL(SharedConstants.openPlayerURL)
+        StyledWideContent(face: face, art: art, style: style)
+            .dynamicTypeSize(...DynamicTypeSize.xLarge)
+            .styleBackground(style, art: art, band: Self.band, canvas: canvas)
+            .widgetURL(SharedConstants.openPlayerURL)
     }
 }
 
@@ -224,10 +182,11 @@ struct WideWidgetView: View {
 ///
 /// iOS has no one-row Home Screen size, so this is offered in the medium slot (the closest native
 /// size), with the row centred on a body of the cover blurred to colour — the capsule's body grown
-/// to fill the widget.
+/// to fill the widget. Supports `.artwork`, `.glass` and `.minimal` styles.
 struct PillWidgetView: View {
     var snapshot: NowPlayingSnapshot?
     var art: WidgetArt?
+    var style: WidgetStyle = .artwork
     var canvas: WidgetCanvas = .widgetKit
 
     var body: some View {
@@ -274,17 +233,7 @@ struct PillWidgetView: View {
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .dynamicTypeSize(...DynamicTypeSize.xLarge)
-        .widgetBackground(canvas) {
-            ZStack {
-                if let art {
-                    Image(uiImage: art.body).resizable().scaledToFill()
-                } else {
-                    WidgetPlaceholderArt()
-                }
-                Color.black.opacity(0.12)
-            }
-            .accessibilityHidden(true)
-        }
+        .styleBackground(style, art: art, band: 70, canvas: canvas)
         .widgetURL(SharedConstants.openPlayerURL)
     }
 }
