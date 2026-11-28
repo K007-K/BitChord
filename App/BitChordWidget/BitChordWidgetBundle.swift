@@ -120,14 +120,20 @@ struct NowPlayingIntentProvider: AppIntentTimelineProvider {
     }
 
     func snapshot(for configuration: WidgetStyleIntent, in context: Context) async -> NowPlayingIntentEntry {
-        let snapshot = NowPlayingSnapshot.load()
-        let art      = WidgetArt.load(for: snapshot)
+        // Always show preview when in gallery (context.isPreview) or when App Group
+        // is unavailable (sideloaded without entitlement — eSign strips App Groups).
+        // This shows a styled preview instead of a grey blank widget.
+        let snapshot = context.isPreview ? WidgetFace.previewSnapshot : (NowPlayingSnapshot.load() ?? WidgetFace.previewSnapshot)
+        let art      = WidgetArt.load(for: NowPlayingSnapshot.load())
         return NowPlayingIntentEntry(snapshot: snapshot, art: art, style: configuration.resolvedStyle)
     }
 
     func timeline(for configuration: WidgetStyleIntent, in context: Context) async -> Timeline<NowPlayingIntentEntry> {
-        let snapshot = NowPlayingSnapshot.load()
-        let art      = WidgetArt.load(for: snapshot)
+        // If App Group data is available use it; otherwise show the preview snapshot
+        // so the widget always renders something instead of a grey blank box.
+        let liveSnapshot = NowPlayingSnapshot.load()
+        let snapshot = liveSnapshot ?? WidgetFace.previewSnapshot
+        let art      = WidgetArt.load(for: liveSnapshot)
         let entry    = NowPlayingIntentEntry(snapshot: snapshot, art: art, style: configuration.resolvedStyle)
         return Timeline(entries: [entry], policy: .never)
     }

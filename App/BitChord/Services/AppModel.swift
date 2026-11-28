@@ -534,12 +534,11 @@ final class AppModel {
             let outputs = AVAudioSession.sharedInstance().currentRoute.outputs.prefix(4).map(\.portType.rawValue)
             TrackLog.i("Activation", "bundle=\(Bundle.main.bundleIdentifier ?? "?") top=\(top) np=\(nowPlayingSet) route=\(outputs)")
 
-            // If the app comes to the foreground with music playing (tapped from Dynamic Island,
-            // Control Center player, or Lock Screen media controls) open the full player so the
-            // user immediately lands on the Now Playing screen rather than whatever tab was last open.
-            if player.currentSong != nil {
-                router.handle(.player, player: player) { _ in nil }
-            }
+            // Note: opening the player here on every foreground is intentionally NOT done.
+            // Widgets and the Dynamic Island already send bitchord://player via widgetURL,
+            // which is handled by onOpenURL → model.open() → DeepLink.player → router.
+            // Calling router.handle(.player) here unconditionally would open the player
+            // every time the user switches back to the app, even from an unrelated foreground.
         }
         if phase == .background {
             // Held open until the list is on disk: the process may be suspended a moment from now.

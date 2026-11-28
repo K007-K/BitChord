@@ -19,8 +19,9 @@ struct NowPlayingProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (NowPlayingEntry) -> Void) {
-        // The gallery shows the stand-in track until something has actually played.
-        if context.isPreview, NowPlayingSnapshot.load() == nil {
+        // Show the preview track in the gallery, or when App Group is unavailable (eSign sideload
+        // strips the entitlement) so the widget renders a styled preview instead of grey blank.
+        if context.isPreview || NowPlayingSnapshot.load() == nil {
             completion(placeholder(in: context))
             return
         }
@@ -28,7 +29,9 @@ struct NowPlayingProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<NowPlayingEntry>) -> Void) {
-        completion(Timeline(entries: [current()], policy: .never))
+        // If App Group is unavailable, always show preview so it renders something.
+        let entry = NowPlayingSnapshot.load() != nil ? current() : placeholder(in: context)
+        completion(Timeline(entries: [entry], policy: .never))
     }
 
     private func current() -> NowPlayingEntry {
