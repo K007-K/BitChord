@@ -64,6 +64,8 @@ enum SettingsRowID: String, CaseIterable, Hashable {
     case appLanguage
     // Widgets
     case widgets
+    // Check for Updates
+    case checkForUpdates
     // Advanced
     case smartVersionAlignment, showNerdStats, appIcon, keepDiagnosticLog, shareDiagnosticLog
 }
@@ -188,6 +190,9 @@ enum SettingsCatalog {
             ]),
             SettingsGroupSpec(id: "widgets", header: "Widgets", rows: [
                 row(.widgets, "Widgets", "home screen", "lock screen", "dynamic island", "artwork", "glass", "minimal", "now playing"),
+            ]),
+            SettingsGroupSpec(id: "checkForUpdates", header: "Updates", rows: [
+                row(.checkForUpdates, "Check for Updates", "update", "version", "download", "install", "ipa", "github"),
             ]),
             SettingsGroupSpec(id: "miscellaneous", header: L10n.miscellaneous, rows: [
                 row(.playNextOnSwipe, L10n.playNextOnSwipe, "swipe", "queue"),

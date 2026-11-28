@@ -31,6 +31,7 @@ struct SettingsScreen: View {
     @State private var pickingLanguage = false
     @State private var openingSpotifyCanvas = false
     @State private var openingWidgets = false
+    @State private var openingUpdater = false
     // What the last export or import did, shown on the row that did it rather than as a toast: a
     // backup is the one action here whose outcome nobody can check by looking at the app
     // afterwards. Held per direction, or an import's result reports itself under "Export".
@@ -95,6 +96,7 @@ struct SettingsScreen: View {
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(isPresented: $openingSpotifyCanvas) { SpotifyCanvasSetupScreen() }
         .navigationDestination(isPresented: $openingWidgets) { WidgetsScreen() }
+        .navigationDestination(isPresented: $openingUpdater) { UpdaterScreen() }
         .task {
             for await status in app.network.statusUpdates() {
                 metered = status.isMetered
@@ -402,6 +404,11 @@ struct SettingsScreen: View {
             SettingsRow(symbol: "rectangle.3.group.fill", title: "Widgets",
                         subtitle: "Home screen & Lock Screen widgets") {
                 openingWidgets = true
+            }
+        case .checkForUpdates:
+            SettingsRow(symbol: "arrow.down.app.fill", title: "Check for Updates",
+                        subtitle: "Download & install new versions without leaving the app") {
+                openingUpdater = true
             }
         }
     }
