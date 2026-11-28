@@ -276,51 +276,32 @@ struct UpdaterScreen: View {
         }
     }
 
+    /// Downloads the IPA using a native URLSessionDownloadTask — the iOS networking stack
+    /// writes directly to a temp file at full network speed. Progress flows via AsyncStream so
+    /// state updates happen directly on the caller's actor (no weak-self capture needed).
     private func downloadWithProgress(from remoteURL: URL) async throws -> URL {
-        let (asyncBytes, response) = try await URLSession.shared.bytes(from: remoteURL)
-        let totalBytes = (response as? HTTPURLResponse)?.value(forHTTPHeaderField: "Content-Length")
-            .flatMap { Int($0) } ?? 0
-
-        // Write to Documents directory so the user can also find it in Files
         let fileName = remoteURL.lastPathComponent.isEmpty ? "BitChord.ipa" : remoteURL.lastPathComponent
         let destURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appendingPathComponent(fileName)
-
-        // Remove old file if present
         try? FileManager.default.removeItem(at: destURL)
 
-        FileManager.default.createFile(atPath: destURL.path, contents: nil)
-        guard let handle = try? FileHandle(forWritingTo: destURL) else {
-            throw UpdaterError.fileWrite
-        }
-        defer { try? handle.close() }
+        let (stream, cont) = AsyncStream<IPADownloadEvent>.makeStream()
+        let delegate = IPADownloadDelegate(destination: destURL, eventContinuation: cont)
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        defer { session.finishTasksAndInvalidate() }
+        session.downloadTask(with: remoteURL).resume()
 
-        // Buffer in 256 KB chunks — avoids 44M single-byte disk writes that caused slow downloads
-        let chunkSize = 256 * 1024
-        var buffer = Data(capacity: chunkSize)
-        var received = 0
-
-        for try await byte in asyncBytes {
-            buffer.append(byte)
-            received += 1
-
-            if buffer.count >= chunkSize {
-                handle.write(buffer)
-                buffer.removeAll(keepingCapacity: true)
-            }
-
-            if totalBytes > 0, received % 51200 == 0 {
-                let progress = Double(received) / Double(totalBytes)
-                await MainActor.run { state = .downloading(progress: min(progress, 0.99)) }
+        for await event in stream {
+            switch event {
+            case .progress(let p):
+                state = .downloading(progress: min(p, 0.99))
+            case .finished(let url):
+                return url
+            case .failed(let error):
+                throw error
             }
         }
-
-        // Flush any remaining bytes
-        if !buffer.isEmpty {
-            handle.write(buffer)
-        }
-
-        return destURL
+        throw UpdaterError.cancelled
     }
 
     private func openInESign(url: URL) {
@@ -352,13 +333,65 @@ private enum UpdaterError: LocalizedError {
     case invalidURL
     case badResponse(Int)
     case fileWrite
+    case cancelled
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL: return "Invalid GitHub API URL."
+        case .invalidURL:   return "Invalid GitHub API URL."
         case .badResponse(let code): return "GitHub returned HTTP \(code). Check your internet connection."
-        case .fileWrite: return "Could not write the downloaded file to disk."
+        case .fileWrite:    return "Could not write the downloaded file to disk."
+        case .cancelled:    return "Download was cancelled."
         }
+    }
+}
+
+/// Events emitted by IPADownloadDelegate via AsyncStream.
+private enum IPADownloadEvent {
+    case progress(Double)
+    case finished(URL)
+    case failed(Error)
+}
+
+/// URLSession delegate that drives a native download task and publishes events via AsyncStream.
+/// Using AsyncStream avoids any weak-self capture on the SwiftUI struct.
+private final class IPADownloadDelegate: NSObject, URLSessionDownloadDelegate {
+    private let destination: URL
+    private let eventContinuation: AsyncStream<IPADownloadEvent>.Continuation
+
+    init(destination: URL, eventContinuation: AsyncStream<IPADownloadEvent>.Continuation) {
+        self.destination = destination
+        self.eventContinuation = eventContinuation
+    }
+
+    func urlSession(_ session: URLSession,
+                    downloadTask: URLSessionDownloadTask,
+                    didWriteData _: Int64,
+                    totalBytesWritten: Int64,
+                    totalBytesExpectedToWrite: Int64) {
+        guard totalBytesExpectedToWrite > 0 else { return }
+        let p = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+        eventContinuation.yield(.progress(p))
+    }
+
+    func urlSession(_ session: URLSession,
+                    downloadTask: URLSessionDownloadTask,
+                    didFinishDownloadingTo location: URL) {
+        do {
+            try? FileManager.default.removeItem(at: destination)
+            try FileManager.default.moveItem(at: location, to: destination)
+            eventContinuation.yield(.finished(destination))
+        } catch {
+            eventContinuation.yield(.failed(error))
+        }
+        eventContinuation.finish()
+    }
+
+    func urlSession(_ session: URLSession,
+                    task: URLSessionTask,
+                    didCompleteWithError error: Error?) {
+        guard let error else { return }
+        eventContinuation.yield(.failed(error))
+        eventContinuation.finish()
     }
 }
 
