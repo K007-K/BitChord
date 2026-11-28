@@ -6,17 +6,18 @@
 
 # BitChord for iOS
 
-### A YouTube Music client for iPhone and iPad, ported from BitChord for Android
+### A YouTube Music client for iPhone and iPad — maintained by K007-K
 
 <br/>
 
-[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fbitchord.hero154.com%2Fsource.json&query=%24.apps%5B0%5D.versions%5B0%5D.version&label=version&style=for-the-badge&labelColor=0d1117&color=e5404f)](#install)
-[![License](https://img.shields.io/github/license/maanya145/BitChord-iOS?style=for-the-badge&labelColor=0d1117)](LICENSE)
+[![Version](https://img.shields.io/badge/version-v1.0.6-e5404f?style=for-the-badge&labelColor=0d1117)](#install)
 [![Platform](https://img.shields.io/badge/iOS-17%2B-0d1117?style=for-the-badge)](#requirements)
+[![License](https://img.shields.io/github/license/K007-K/BitChord?style=for-the-badge&labelColor=0d1117)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/K007-K/BitChord?style=for-the-badge&labelColor=0d1117&color=e5404f)](https://github.com/K007-K/BitChord/releases/latest)
 
 <br/>
 
-[Install](#install) · [Features](#features) · [Building from source](#building-from-source) · [Contributing](#contributing) · [Credits](#credits) · [Disclaimer](#disclaimer-and-legal-notice)
+[Install](#install) · [Features](#features) · [What's New](#whats-new-in-v106) · [Build from Source](#building-from-source) · [Credits](#credits) · [Disclaimer](#disclaimer-and-legal-notice)
 
 </div>
 
@@ -27,225 +28,194 @@
 
 ## What this is
 
-This repository holds the iOS port of [BitChord](https://github.com/kushagrasinghx/BitChord), the open-source YouTube Music client for Android by [Kushagra Singh](https://github.com/kushagrasinghx). It is a native SwiftUI app for iPhone and iPad that follows the Android app screen for screen, currently tracking BitChord for Android 1.8.
+BitChord for iOS is a native SwiftUI YouTube Music client for iPhone and iPad. This build is independently maintained by [K007-K](https://github.com/K007-K) with custom features, bug fixes and improvements on top of the community iOS port.
 
-Where iOS cannot do what Android does, the port uses the closest iOS equivalent or leaves the feature out. The [porting notes](docs/PORTING.md) list each feature, the Android source it comes from, and the tests that cover it. The Android app remains the upstream project. Bugs in the iOS app belong here; bugs in the Android app belong [upstream](https://github.com/kushagrasinghx/BitChord/issues).
+**In-app updater:** This build includes a built-in updater — once installed, go to **Settings → Updates → Check for Updates** to download and install new versions without needing a Mac each time.
 
-<!-- Screenshots: no iOS screenshots exist yet. Add them here once taken. -->
+---
+
+## What's New in v1.0.6
+
+### 🎨 Customizable Widgets
+- **Small (2×2):** Album art + compact controls
+- **Medium 4×2:** Full-width artwork + title, artist, controls
+- **Medium 4×1:** Pill row with track info + all controls
+- **Large 4×4:** Big cover + full 5-button transport (Like, Prev, Play, Next, Shuffle)
+- **Lock Screen Circular:** Album art circle
+- **Lock Screen Bar:** Track + Prev/Play/Next in a compact bar
+- **3 styles per widget:** Artwork (default), Glass (blurred background), Minimal (dark card)
+- Pick a style per widget: long-press → Edit Widget
+
+### 🔄 In-App Updater
+- Settings → Updates → **Check for Updates**
+- Fetches the latest release from GitHub automatically
+- Downloads IPA with a live progress bar
+- Opens in eSign for one-tap install — no Mac needed after first install
+
+### 🐛 Fixes
+- Fixed app jumping to player every time it came to foreground with music playing
+- Widgets show a branded placeholder instead of grey boxes when sideloaded via eSign
+- Listen Together party server updated for Android compatibility
+
+---
 
 ## Features
 
 ### Playback
-
-- Search, browse and play the YouTube Music catalogue: Home, Explore, moods and genres, artist, album and playlist pages.
+- Search, browse and play the YouTube Music catalogue: Home, Explore, moods, genres, artist, album and playlist pages.
 - Separate streaming quality for Wi-Fi and mobile data, plus a Dolby Atmos option.
-- Optional add-on sources for lossless and Atmos streams, with YouTube Music as the fallback. Sources can be added, tested and reordered.
-- Crossfade from 0 to 12 seconds, and Automix, which plans each transition from the beat grid and vocal activity of both tracks.
-- Loudness normalization, skip silence, stereo widening and a built-in equalizer.
-- A sleep timer: 15, 30, 45 or 60 minutes, or the end of the current track.
-- An on-device song cache with an adjustable size limit.
-- Stats for nerds on the now playing screen: codec, bitrate and the audio pipeline.
+- Optional add-on sources for lossless and Atmos streams, with YouTube Music as the fallback.
+- Crossfade (0–12 s), Automix, loudness normalization, skip silence, equalizer.
+- On-device song cache with an adjustable size limit.
+- Stats for nerds: codec, bitrate and audio pipeline on the Now Playing screen.
 
 ### Lyrics
+- Synced lyrics with line and word highlighting from multiple providers: LRCLIB, Musixmatch, Genius, KuGou, and more.
+- Translate lyrics, adjust timing offset, share lines as an image card.
 
-- Synced lyrics with line and word highlighting, gathered from several providers: LRCLIB, Musixmatch, Genius, KuGou, PaxSenix, BetterLyrics, BiniLyrics, LyricsPlus, SimpMusic, Unison, Megalobiz and YouTube Music.
-- Choose and reorder providers, adjust the timing offset, and translate lyrics into another language.
-- Share selected lines as an image card.
-- Lyrics are kept on the device per track.
+### Library & Offline
+- Sign in with Google for your YouTube Music library, playlists and history.
+- Download tracks for offline play with metadata and lyrics baked in.
+- Import audio from the Files app. Play from SMB and WebDAV network shares.
+- Export and import settings and listening history as JSON.
 
-### Library and offline
+### Widgets & System
+- **Home Screen widgets:** Small, Medium (4×2 and 4×1), Large (4×4) — all with 3 style options.
+- **Lock Screen widgets:** Circular album art, Rectangular bar with controls.
+- Lock Screen and Control Center controls.
+- Share extension for YouTube / YouTube Music links.
+- App Intents for playback. CarPlay interface (requires Apple entitlement).
 
-- Sign in with a Google account for your YouTube Music library, playlists and history. You can add several accounts and switch between personal and brand profiles.
-- Download tracks for offline play, with metadata and lyrics written into the file.
-- Import your own audio files from the Files app.
-- Play music from SMB and WebDAV shares on your network.
-- Export and import settings and listening history as a JSON file.
-
-### Look and feel
-
-- Animated cover art from Apple Music, Tidal, Spotify and a community index, on the player and on the lock screen.
-- Player colours and background taken from the album artwork.
-- A landscape player layout and iPad support.
-- Five app icons to choose from in Settings.
-- The interface is available in 16 languages.
-
-### Social and integrations
-
-- Listen Together: host a listening party and invite others with a code, a link or a QR code.
-- Replay: listening statistics by period, with a shareable poster.
+### Social & Integrations
+- **Listen Together:** host a party, invite with a code, link or QR code.
+- **Replay:** listening stats by period with a shareable poster.
 - Scrobbling to Last.fm and ListenBrainz.
-- Discord Rich Presence with in-app Discord sign-in, showing the track, artist, progress and audio quality.
+- Discord Rich Presence.
 
-### System
+### Look & Feel
+- Animated cover art from Apple Music, Tidal, Spotify and community index.
+- Player colours from album artwork. Landscape player + iPad support.
+- 5 app icons. 16 languages.
 
-- Lock screen and Control Center controls.
-- Three Home Screen widgets, in small and medium sizes.
-- A Share extension that opens YouTube and YouTube Music links in BitChord.
-- App Intents for playback.
-- A CarPlay interface. It needs Apple's CarPlay audio entitlement, which the project does not carry.
+---
 
 ## Requirements
 
-- iPhone or iPad running iOS 17 or later.
-- A sideloading tool such as AltStore or SideStore. BitChord is not on the App Store.
+- iPhone or iPad running **iOS 17 or later**.
+- A sideloading tool: **eSign** (free), AltStore or SideStore.
+
+> [!NOTE]
+> For live widget data (actual song/art in widgets), install via **AltStore or SideStore**. eSign strips the App Group entitlement that lets the app share data with its widgets. With eSign, widgets show a styled BitChord placeholder.
+
+---
 
 ## Install
 
-BitChord is distributed as an IPA through a sideloading source.
+### Option 1 — eSign (easiest, free)
+1. Download the latest IPA from the [Releases page](https://github.com/K007-K/BitChord/releases/latest).
+2. Install using [eSign](https://esign.yyyue.xyz/).
+3. Open the app → **Settings → Updates → Check for Updates** for future updates — no Mac needed.
 
-1. Install AltStore, SideStore or another app that reads AltStore sources.
-2. Add this source:
+### Option 2 — AltStore / SideStore
+1. Download the latest IPA from the [Releases page](https://github.com/K007-K/BitChord/releases/latest).
+2. Add it via AltStore or SideStore.
+3. Widgets will show live now-playing data (App Group works with these tools).
 
-   ```
-   https://bitchord.hero154.com/source.json
-   ```
+---
 
-3. Install BitChord from the source.
+## Building from Source
 
-To update, install the new version over the old one. Downloads, library and settings carry over.
+### Requirements
+- macOS with Xcode 16 or later.
+- An Apple Developer account (free tier works for local builds).
 
-## Building from source
+### Steps
 
-### What you need
-
-- A Mac with Xcode 27.
-- An Apple ID if you want to run the app on a device. The simulator needs no signing setup.
-
-### Open the project
-
-```sh
-git clone https://github.com/maanya145/BitChord-iOS.git bitchord-ios
-cd bitchord-ios
+```bash
+git clone https://github.com/K007-K/BitChord.git
+cd BitChord
 open BitChord.xcworkspace
 ```
 
-Open the workspace, not the `.xcodeproj`. It contains the app project and the `BitChordKit` package. Pick the `BitChord` scheme. Xcode resolves the two Swift package dependencies on first open.
+Select the `BitChord` scheme, choose your device or simulator, and build.
 
-### Signing for a device
+> [!NOTE]
+> The project uses a local ONNX Runtime stub (`scratch/onnxruntime-stub/`) so the build works without the upstream Swift package. No changes needed.
 
-The project uses automatic signing with no team set, and the maintainer's identifiers. To run on your own device:
+### Build unsigned IPA (for eSign)
 
-1. Select your team under Signing & Capabilities for the `BitChord`, `BitChordWidgetExtension` and `BitChordShareExtension` targets.
-2. Change the bundle identifiers to a prefix you own. The app is `com.music.bitchord`, the widget is `com.music.bitchord.widget` and the Share extension is `com.music.bitchord.share`. The extensions must keep the app's identifier as their prefix.
-3. Change the app group `group.com.music.bitchord` in the three files under `App/Config/*.entitlements` and in `App/Shared/SharedConstants.swift`. The widget and the Share extension read the app's data through this group.
-
-Do not commit these changes in a pull request.
-
-### Optional keys
-
-The app reads two optional build settings, `LASTFM_API_KEY` and `LASTFM_API_SECRET`, into its `Info.plist`. Without them the app builds and runs, but Last.fm sign-in and scrobbling and the genre chart in Replay stay unavailable. To use them, get a key from [Last.fm](https://www.last.fm/api/account/create) and pass both on the command line:
-
-```sh
-xcodebuild -workspace BitChord.xcworkspace -scheme BitChord \
-  -destination 'generic/platform=iOS Simulator' \
-  LASTFM_API_KEY=your_key LASTFM_API_SECRET=your_secret build
+```bash
+xcodebuild \
+  -workspace BitChord.xcworkspace \
+  -scheme BitChord \
+  -configuration Release \
+  -destination "generic/platform=iOS" \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO \
+  build
 ```
 
-In Xcode, add them as user-defined build settings on the `BitChord` target, and keep them out of commits. No `.xcconfig` file is attached to the project.
+Then package the `.app` into a Payload folder and zip as `.ipa`.
 
-The PaxSenix lyrics key is entered in the app under the lyrics sources, not at build time.
+---
 
-### Command line
-
-The scripts in `scripts/` wrap the common builds. They can be run from any directory.
-
-```sh
-scripts/kit-test.sh                      # BitChordKit tests on the Mac, no simulator
-scripts/kit-test.sh --filter LyricsTests # one module's tests
-scripts/kit-build-ios.sh                 # compile BitChordKit for the iOS Simulator
-scripts/app-build.sh                     # compile the app, extensions and test bundles
-scripts/sim-test.sh                      # run the BitChord test plan on the "iPhone 16" simulator
-scripts/make-ipa.sh                      # build an unsigned Release IPA in build/
-scripts/verify-ipa.sh build/<file>.ipa   # check an IPA's signature and app-group entitlements
-```
-
-The scripts use `/Applications/Xcode.app` unless `DEVELOPER_DIR` is set. `JOBS=n` sets the number of parallel compile jobs. `BITCHORD_SIM_NAME` picks a different simulator for `sim-test.sh`, and extra arguments go to `xcodebuild`, for example `scripts/sim-test.sh -only-testing:BitChordTests`.
-
-Tests that call real services are skipped unless `BITCHORD_LIVE_TESTS=1` is set, so the default run works offline.
-
-## Project layout
+## Project Structure
 
 ```
-BitChord.xcworkspace      open this
 App/
-  BitChord.xcodeproj      app, widget, Share extension and app-hosted test targets
-  BitChord/               the SwiftUI app: screens, navigation, CarPlay, App Intents
-  BitChordWidget/         Home Screen widgets
-  BitChordShare/          Share extension
-  Shared/                 code compiled into the app and both extensions
-  BitChordTests/          app-hosted unit and view model tests
-  BitChordUITests/        UI and end-to-end tests
-  Config/                 Info.plists and entitlements
-  BitChord.xctestplan     the scheme's test plan: BitChordTests and every BitChordKit test target
-  BitChordE2E.xctestplan  the UI tests, some of which need the network
-BitChordKit/              Swift package with all non-UI logic, one module per subsystem
+  BitChord/            iOS app target
+    App/               entry point, root view, scene lifecycle
+    Features/          one folder per screen (NowPlaying, Browse, Settings, …)
+    Services/          AppModel, PlayerController, PlaybackObservers, …
+    Navigation/        AppRouter, DeepLink, AppRoute
+    Intents/           App Intents and Siri support
+  BitChordWidget/      Widget extension (home screen + lock screen)
+  Shared/              code compiled into both app and widget
+BitChordKit/           Swift package — the audio engine and logic
   Sources/
-    BitChordCore          shared models, settings, HTTP and logging
-    InnerTube             YouTube Music API client, parser and Google sign-in
-    StreamResolution      turns a video id into a playable audio stream
-    Sources               add-on and JioSaavn sources, matching and fallback to YouTube
-    PlaybackQueue         queue, shuffle, autoplay, history and sleep timer
-    PlaybackPolicy        quality choice, upgrades, fallbacks and stats for nerds
-    Playback              the AVPlayer engine, crossfade and system media controls
-    AudioCache            on-disk cache for streamed audio
-    AudioDSP              equalizer, loudness, skip silence and spatial audio
-    Automix               transition planning with the beat and vocal models
-    AutomixAnalyzer       C++ audio analyzer behind a C header
-    Lyrics                lyrics providers, parsing, storage and translation
-    Downloads             offline downloads, tagging and Files imports
-    NetworkLibrary        SMB and WebDAV libraries
-    ListenTogether        Listen Together client and invite links
-    Integrations          Last.fm, ListenBrainz and Discord
-    Replay                listening statistics and backup
-    Canvas                animated cover art lookups
-    Theming               colours taken from artwork
-    BitChordTestSupport   test helpers, never shipped
-  Tests/                  one test target per module
-scripts/                  build, test and packaging scripts
-docs/PORTING.md           feature checklist and porting decisions
+    BitChordCore       shared models and utilities
+    AudioPlayer        AVFoundation player
+    AudioCache         on-disk cache
+    AudioDSP           equalizer, loudness, skip silence, spatial audio
+    Automix            transition planning
+    Lyrics             providers, parsing, storage, translation
+    Downloads          offline downloads
+    ListenTogether     party client
+    Integrations       Last.fm, ListenBrainz, Discord
+    Replay             listening stats
 ```
 
-The top of `BitChordKit/Package.swift` lists the Android source each module ports. Android paths in code comments are relative to `app/src/main/java/com/music/bitchord/` in the [upstream repository](https://github.com/kushagrasinghx/BitChord).
-
-## Contributing
-
-Contributions are welcome. Read the [contributing guide](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md) before you open a pull request. Pull requests target `main`. For anything larger than a bug fix, open an issue first.
+---
 
 ## Credits
 
+### Original iOS Port
+Based on the community iOS port of [BitChord](https://github.com/bagumamartin/BitChord) by [bagumamartin](https://github.com/bagumamartin). The design, screen layout and core logic come from that project.
+
 ### BitChord for Android
+The iOS app mirrors [BitChord for Android](https://github.com/kushagrasinghx/BitChord) by [Kushagra Singh](https://github.com/kushagrasinghx), licensed under GPL-3.0.
 
-This app is a port of [BitChord](https://github.com/kushagrasinghx/BitChord) by [Kushagra Singh](https://github.com/kushagrasinghx), licensed under GPL-3.0. The design, the features and most of the behaviour come from that project, and the Android source is the reference for every module here. If you like the app, support the [upstream project](https://github.com/kushagrasinghx/BitChord).
-
-Thanks also to the [contributors to BitChord for Android](https://github.com/kushagrasinghx/BitChord/graphs/contributors).
-
-### Credited by the Android project
-
-- [binimum](https://github.com/binimum/am-lyrics) for the Apple-style lyrics animation, which the iOS lyrics view ports from Android. binimum also runs the BiniLyrics and LyricsPlus services the app reads lyrics from.
-
-### Third-party code and models
-
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) lists every third-party work in this repository or linked into the app, with its licence. In short:
-
-- [AMSMB2](https://github.com/amosavian/AMSMB2), which wraps libsmb2 (LGPL-2.1), for SMB shares.
-- [ONNX Runtime](https://github.com/microsoft/onnxruntime-swift-package-manager) (MIT) to run the Automix models.
-- [Orchard](https://github.com/SFG5453/Orchard) by SFG545. The Automix analyzer and several Automix files are ported from Orchard through BitChord for Android and stay under AGPL-3.0.
-- The Beat This! beat model by CPJKU and the Open-Unmix vocals model by Inria and SigSep.
-- Stream resolution follows NewPipe Extractor, InnerTubeX and zemer-cipher; the Discord integration ports Kizzy; the artwork colours port AndroidX Palette and ColorUtils.
+### Third-party Libraries
+- [AMSMB2](https://github.com/amosavian/AMSMB2) — SMB share support (LGPL-2.1)
+- [ONNX Runtime](https://github.com/microsoft/onnxruntime-swift-package-manager) — Automix models (MIT)
+- Beat This! (CPJKU) and Open-Unmix (Inria/SigSep) ML models
 
 ### Services
+Lyrics: LRCLIB, Musixmatch, Genius, KuGou, PaxSenix, BetterLyrics and more.  
+Animated covers: Apple Music, Tidal, Spotify, community canvas index.  
+Listen Together: BitChord party backend.
 
-Lyrics come from LRCLIB, Musixmatch, Genius, KuGou, PaxSenix, BetterLyrics, BiniLyrics, LyricsPlus, SimpMusic, Unison, Megalobiz and YouTube Music. Animated covers come from Apple Music, Tidal, Spotify and a community canvas index. Listen Together uses the BitChord Listen Together backend from the Android project. Thanks to the people who run these services.
+---
 
-## Disclaimer and legal notice
+## Disclaimer and Legal Notice
 
-BitChord for iOS is an independent, community-driven third-party audio player and client. It is not associated with Google LLC, YouTube, YouTube Music, Apple Inc. or any of their parent companies.
+BitChord for iOS is an independent, community-driven third-party audio player. It is not associated with Google LLC, YouTube, YouTube Music, Apple Inc. or any of their affiliates.
 
-- **No media hosting.** BitChord does not host, upload or store copyrighted music. It plays files you import, files on your own network shares, and streams from public or user-authenticated APIs.
-- **Fair use and API usage.** This software is made for personal research, education and fair use. You are responsible for making sure your use complies with your local copyright laws and the YouTube Terms of Service.
-- **No guarantee of service.** BitChord does not guarantee that any third-party platform will keep working with it.
-- **Copyleft.** BitChord is free software under GPL-3.0. Anyone may sell or redistribute copies, but every distribution must come with the corresponding source under the same license.
+- **No media hosting.** BitChord does not host, upload or store copyrighted music.
+- **Fair use.** This software is for personal research, education and fair use. You are responsible for compliance with your local copyright laws and the YouTube Terms of Service.
+- **No service guarantee.** BitChord does not guarantee that any third-party platform will continue to work with it.
+- **Copyleft.** BitChord is free software under GPL-3.0. Any distribution must include the source under the same license.
 
 ## License
 
-BitChord for iOS is licensed under the [GNU General Public License v3.0](LICENSE). It is a port of BitChord for Android, which is GPL-3.0, so the port carries the same license. The files ported from Orchard remain under the [GNU Affero General Public License v3.0](LICENSES/AGPL-3.0.txt), as their headers state. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the full list.
+Licensed under the [GNU General Public License v3.0](LICENSE). Files ported from Orchard remain under AGPL-3.0 as their headers state. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the full list.
