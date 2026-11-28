@@ -23,9 +23,9 @@ public struct ParsedPartyInvite: Hashable, Sendable {
 /// `consume(Intent)` entry point is `PartyInviteInbox/consume(url:)` here — iOS delivers
 /// deep links as `URL`, not intents.)
 public enum JamInviteLink {
-    public static let origin = "https://bitchord.kushagrasingh.in"
+    public static let origin = "https://api.bitchord.kushagrasingh.in"
 
-    private static let host = "bitchord.kushagrasingh.in"
+    private static let host = "api.bitchord.kushagrasingh.in"
     private static let customScheme = "bitchord"
     private static let customHost = "party"
 
