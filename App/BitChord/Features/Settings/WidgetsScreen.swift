@@ -5,8 +5,58 @@ import WidgetKit
 /// Opened from Settings → Widgets.
 /// Shows a visual catalogue of every available widget with its size, description and style options.
 struct WidgetsScreen: View {
+
+    /// True when the App Group shared container is accessible (i.e. NOT an eSign sideload).
+    private var appGroupAvailable: Bool {
+        UserDefaults(suiteName: "group.com.music.bitchord") != nil &&
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.music.bitchord") != nil
+    }
+
     var body: some View {
         List {
+
+            // MARK: - eSign limitation banner
+            if !appGroupAvailable {
+                Section {
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(.orange)
+                            .padding(.top, 2)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Widgets need live data to show your now-playing track.")
+                                .font(.subheadline.weight(.semibold))
+                            Text("eSign strips the App Group entitlement when signing, which is the iOS mechanism that lets a widget read data from the main app. Without it, widgets can only show a static preview.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("To get working widgets, install BitChord via **TrollStore** or **AltStore / SideStore** instead of eSign — both preserve entitlements.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            HStack(spacing: 8) {
+                                Link(destination: URL(string: "https://github.com/opa334/TrollStore")!) {
+                                    Label("TrollStore", systemImage: "arrow.up.right")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(.orange)
+                                }
+                                Text("·").foregroundStyle(.tertiary)
+                                Link(destination: URL(string: "https://altstore.io")!) {
+                                    Label("AltStore", systemImage: "arrow.up.right")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(.blue)
+                                }
+                                Text("·").foregroundStyle(.tertiary)
+                                Link(destination: URL(string: "https://sidestore.io")!) {
+                                    Label("SideStore", systemImage: "arrow.up.right")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(.purple)
+                                }
+                            }
+                            .padding(.top, 2)
+                        }
+                    }
+                    .padding(.vertical, 6)
+                }
+            }
             // MARK: - Home Screen section
             Section {
                 WidgetCatalogRow(
