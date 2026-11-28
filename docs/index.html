@@ -593,7 +593,9 @@
       position: relative;
       z-index: 2;
       display: flex;
-      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 3px;
       background: var(--surface);
       border: 1px solid var(--border);
       padding: 4px;
@@ -604,9 +606,9 @@
     .phone-tab {
       border: none;
       background: transparent;
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: var(--radius-pill);
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 500;
       color: var(--text-secondary);
       position: relative;
@@ -1107,8 +1109,10 @@
             <div class="phone-tabs" role="tablist" aria-label="BitChord screen previews">
               <button type="button" class="phone-tab" role="tab" aria-selected="true" data-mode="player">Player</button>
               <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="lyrics">Lyrics</button>
-              <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="actions">Controls</button>
-              <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="widgets">Widgets</button>
+              <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="home">Home</button>
+              <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="explore">Explore</button>
+              <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="library">Library</button>
+              <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="search">Search</button>
             </div>
 
             <div class="finish-swatches" role="group" aria-label="Titanium finish">
@@ -1119,7 +1123,7 @@
             <button type="button" class="play-pill-btn" id="play-toggle-btn" aria-pressed="true">&#10074;&#10074; Pause</button>
             <button type="button" class="reset-view-btn" id="reset-3d-view">Reset View</button>
           </div>
-          <p class="drag-hint">Tap Play, scrubber, heart, or menu directly on the 3D screen &middot; Drag to rotate 360&deg;</p>
+          <p class="drag-hint">Tap Play, Skip Song, Scrubber, Heart, or Bottom Tabs directly on the 3D screen &middot; Drag to rotate 360&deg;</p>
         </div>
       </div>
     </section>
@@ -1549,11 +1553,36 @@
     const resetBtn = document.getElementById('reset-3d-view');
 
     const SCREEN_ASSETS = {
-      player: { url: 'assets/screen-player.png' },
-      lyrics: { url: 'assets/screen-lyrics.png' },
-      actions: { url: 'assets/screen-actions.png' },
-      widgets: { url: 'assets/screen-widgets.png' }
+      player: { url: 'assets/screen-player-raga.webp' },
+      lyrics: { url: 'assets/screen-lyrics-raga.webp' },
+      home: { url: 'assets/screen-home.webp' },
+      explore: { url: 'assets/screen-explore.webp' },
+      library: { url: 'assets/screen-library.webp' },
+      search: { url: 'assets/screen-search.webp' },
+      playerAlt: { url: 'assets/screen-player.png' },
+      lyricsAlt: { url: 'assets/screen-lyrics.png' }
     };
+
+    const TRACKS = [
+      {
+        id: 'raga',
+        title: 'Raga of Madness',
+        artist: 'Anirudh Ravichander & Vishal Mishra',
+        duration: 198,
+        playerKey: 'player',
+        lyricsKey: 'lyrics',
+        liked: false
+      },
+      {
+        id: 'powerhouse',
+        title: 'Powerhouse x Disco',
+        artist: 'Anirudh Ravichander',
+        duration: 85,
+        playerKey: 'playerAlt',
+        lyricsKey: null,
+        liked: false
+      }
+    ];
 
     // Interactive OLED Playback State + Composited Screen Canvas
     const SCREEN_W = 1179;
@@ -1571,10 +1600,11 @@
     const loadedImages = new Map();
     let screenMesh = null;
     let currentMode = 'player';
+    let currentTrackIdx = 0;
     let isPlaying = true;
     let isLiked = false;
-    let currentSec = 3;
-    const durationSec = 85;
+    let currentSec = 5;
+    let durationSec = TRACKS[0].duration;
     let toastMessage = '';
     let toastUntil = 0;
 
@@ -1595,6 +1625,18 @@
       const sw = wFrac * img.width;
       const sy = sampleYFrac * img.height;
       const sh = Math.max(2, img.height * 0.008);
+      sctx.drawImage(
+        img, sx, sy, sw, sh,
+        xFrac * SCREEN_W, yFrac * SCREEN_H, wFrac * SCREEN_W, hFrac * SCREEN_H
+      );
+    }
+
+    // Clone a clean vertical strip beside an icon to match vertical pill glass sheen row-for-row
+    function patchVertical(img, xFrac, yFrac, wFrac, hFrac, sampleXFrac) {
+      const sx = sampleXFrac * img.width;
+      const sw = Math.max(4, img.width * 0.015);
+      const sy = yFrac * img.height;
+      const sh = hFrac * img.height;
       sctx.drawImage(
         img, sx, sy, sw, sh,
         xFrac * SCREEN_W, yFrac * SCREEN_H, wFrac * SCREEN_W, hFrac * SCREEN_H
@@ -1643,8 +1685,47 @@
       sctx.restore();
     }
 
+    function getActiveAssetKey(modeKey = currentMode) {
+      const track = TRACKS[currentTrackIdx] || TRACKS[0];
+      if (modeKey === 'player') return track.playerKey;
+      if (modeKey === 'lyrics') return track.lyricsKey || 'lyricsAlt';
+      return modeKey;
+    }
+
+    function switchTrack(delta, forcedIdx = null, toastPrefix = '') {
+      const prevTrack = TRACKS[currentTrackIdx];
+      if (prevTrack) prevTrack.liked = isLiked;
+
+      currentTrackIdx = forcedIdx !== null
+        ? ((forcedIdx % TRACKS.length) + TRACKS.length) % TRACKS.length
+        : (currentTrackIdx + delta + TRACKS.length) % TRACKS.length;
+
+      const nextTrack = TRACKS[currentTrackIdx];
+      if (currentMode === 'lyrics' && !nextTrack.lyricsKey) {
+        currentMode = 'player';
+        phoneStage.dataset.mode = 'player';
+        phoneTabs.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === 'player')));
+      }
+      durationSec = nextTrack.duration;
+      currentSec = 4;
+      isLiked = Boolean(nextTrack.liked);
+      isPlaying = true;
+      playToggleBtn.setAttribute('aria-pressed', 'true');
+      playToggleBtn.innerHTML = '&#10074;&#10074; Pause';
+
+      const msg = `${toastPrefix || (delta < 0 ? 'Previous' : 'Next')}: ${nextTrack.title}`;
+      const assetKey = getActiveAssetKey();
+      if (loadedImages.has(assetKey)) {
+        showScreenToast(msg);
+      } else {
+        loadScreenImage(assetKey).then(() => showScreenToast(msg));
+      }
+    }
+
     function renderLiveScreen(nowMs = performance.now()) {
-      const img = loadedImages.get(currentMode);
+      const track = TRACKS[currentTrackIdx] || TRACKS[0];
+      const imgKey = getActiveAssetKey();
+      const img = loadedImages.get(imgKey) || loadedImages.get(currentMode);
       if (!img) return;
 
       sctx.clearRect(0, 0, SCREEN_W, SCREEN_H);
@@ -1652,13 +1733,14 @@
       const progress = Math.min(1, Math.max(0, currentSec / durationSec));
 
       if (currentMode === 'player') {
-        // Patch Play/Pause button area (sample blended gradient right above & below)
-        patchRegion(img, 0.43, 0.725, 0.14, 0.036, 0.722);
+        // Patch Play/Pause button area (sample clean gradient right above & below)
+        const topPatch = currentTrackIdx === 1 ? 0.722 : 0.732;
+        patchRegion(img, 0.43, 0.725, 0.14, 0.036, topPatch);
         patchRegion(img, 0.43, 0.761, 0.14, 0.036, 0.794);
-        drawPlayGlyph(SCREEN_W * 0.502, SCREEN_H * 0.758, 92, isPlaying);
+        drawPlayGlyph(SCREEN_W * 0.502, SCREEN_H * 0.759, 92, isPlaying);
 
-        // Live Scrubber Track (sample clean gap above at 0.634, avoiding Tamil diacritics at 0.625)
-        patchRegion(img, 0.055, 0.639, 0.89, 0.015, 0.634);
+        // Live Scrubber Track
+        patchRegion(img, 0.055, 0.639, 0.89, 0.015, 0.6355);
         const sx = SCREEN_W * 0.069;
         const sy = SCREEN_H * 0.6465;
         const sw = SCREEN_W * 0.862;
@@ -1680,66 +1762,107 @@
         // Heart overlay inside circular button when toggled ON
         if (isLiked) {
           sctx.fillStyle = 'rgba(255,255,255,0.16)';
-          sctx.beginPath(); sctx.arc(SCREEN_W * 0.763, SCREEN_H * 0.556, 40, 0, Math.PI * 2); sctx.fill();
-          drawHeart(SCREEN_W * 0.763, SCREEN_H * 0.557, 17, true);
+          sctx.beginPath(); sctx.arc(SCREEN_W * 0.764, SCREEN_H * 0.555, 40, 0, Math.PI * 2); sctx.fill();
+          drawHeart(SCREEN_W * 0.764, SCREEN_H * 0.556, 17, true);
         }
       } else if (currentMode === 'lyrics') {
-        // Patch center Play/Pause on Lyrics view
+        const isAlt = currentTrackIdx === 1;
         patchRegion(img, 0.43, 0.735, 0.14, 0.036, 0.732);
         patchRegion(img, 0.43, 0.771, 0.14, 0.036, 0.805);
-        drawPlayGlyph(SCREEN_W * 0.502, SCREEN_H * 0.767, 94, isPlaying);
+        drawPlayGlyph(SCREEN_W * 0.502, SCREEN_H * (isAlt ? 0.767 : 0.759), 92, isPlaying);
 
-        // Live Scrubber + Timestamps on Lyrics view (capsule is at y=0.651..0.661, clean row above at 0.640)
-        patchRegion(img, 0.075, 0.648, 0.85, 0.017, 0.640);
-        const sx = SCREEN_W * 0.088;
-        const sy = SCREEN_H * 0.6565;
-        const sw = SCREEN_W * 0.824;
-        sctx.fillStyle = 'rgba(255,255,255,0.28)';
-        sctx.beginPath(); sctx.roundRect(sx, sy - 5, sw, 10, 5); sctx.fill();
-        sctx.fillStyle = '#ffffff';
-        sctx.beginPath(); sctx.roundRect(sx, sy - 5, Math.max(12, sw * progress), 10, 5); sctx.fill();
-        sctx.beginPath(); sctx.arc(sx + sw * progress, sy, 13, 0, Math.PI * 2); sctx.fill();
+        if (isAlt) {
+          patchRegion(img, 0.075, 0.648, 0.85, 0.017, 0.640);
+          const sx = SCREEN_W * 0.088;
+          const sy = SCREEN_H * 0.6565;
+          const sw = SCREEN_W * 0.824;
+          sctx.fillStyle = 'rgba(255,255,255,0.28)';
+          sctx.beginPath(); sctx.roundRect(sx, sy - 5, sw, 10, 5); sctx.fill();
+          sctx.fillStyle = '#ffffff';
+          sctx.beginPath(); sctx.roundRect(sx, sy - 5, Math.max(12, sw * progress), 10, 5); sctx.fill();
+          sctx.beginPath(); sctx.arc(sx + sw * progress, sy, 13, 0, Math.PI * 2); sctx.fill();
 
-        patchRegion(img, 0.085, 0.683, 0.12, 0.016, 0.710);
-        patchRegion(img, 0.795, 0.683, 0.13, 0.016, 0.710);
-        sctx.font = '500 26px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
-        sctx.fillStyle = 'rgba(255,255,255,0.72)';
-        sctx.textBaseline = 'alphabetic';
-        sctx.textAlign = 'left'; sctx.fillText(fmtTime(currentSec), sx, SCREEN_H * 0.695);
-        sctx.textAlign = 'right'; sctx.fillText('-' + fmtTime(durationSec - currentSec), sx + sw, SCREEN_H * 0.695);
+          patchRegion(img, 0.085, 0.683, 0.12, 0.016, 0.710);
+          patchRegion(img, 0.795, 0.683, 0.13, 0.016, 0.710);
+          sctx.font = '500 26px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+          sctx.fillStyle = 'rgba(255,255,255,0.72)';
+          sctx.textBaseline = 'alphabetic';
+          sctx.textAlign = 'left'; sctx.fillText(fmtTime(currentSec), sx, SCREEN_H * 0.695);
+          sctx.textAlign = 'right'; sctx.fillText('-' + fmtTime(durationSec - currentSec), sx + sw, SCREEN_H * 0.695);
 
-        if (isLiked) {
-          drawHeart(SCREEN_W * 0.785, SCREEN_H * 0.116, 16, true);
+          if (isLiked) drawHeart(SCREEN_W * 0.785, SCREEN_H * 0.116, 16, true);
+        } else {
+          // Raga Lyrics (IMG_0527) aligns identically with Raga Player
+          patchRegion(img, 0.055, 0.639, 0.89, 0.015, 0.6355);
+          const sx = SCREEN_W * 0.069;
+          const sy = SCREEN_H * 0.6465;
+          const sw = SCREEN_W * 0.862;
+          sctx.fillStyle = 'rgba(255,255,255,0.28)';
+          sctx.beginPath(); sctx.roundRect(sx, sy - 5, sw, 10, 5); sctx.fill();
+          sctx.fillStyle = '#ffffff';
+          sctx.beginPath(); sctx.roundRect(sx, sy - 5, Math.max(12, sw * progress), 10, 5); sctx.fill();
+          sctx.beginPath(); sctx.arc(sx + sw * progress, sy, 13, 0, Math.PI * 2); sctx.fill();
+
+          patchRegion(img, 0.055, 0.655, 0.14, 0.018, 0.680);
+          patchRegion(img, 0.805, 0.655, 0.14, 0.018, 0.680);
+          sctx.font = '500 26px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+          sctx.fillStyle = 'rgba(255,255,255,0.72)';
+          sctx.textBaseline = 'alphabetic';
+          sctx.textAlign = 'left'; sctx.fillText(fmtTime(currentSec), sx, SCREEN_H * 0.6685);
+          sctx.textAlign = 'right'; sctx.fillText('-' + fmtTime(durationSec - currentSec), sx + sw, SCREEN_H * 0.6685);
+
+          if (isLiked) {
+            sctx.fillStyle = 'rgba(255,255,255,0.16)';
+            sctx.beginPath(); sctx.arc(SCREEN_W * 0.764, SCREEN_H * 0.1394, 38, 0, Math.PI * 2); sctx.fill();
+            drawHeart(SCREEN_W * 0.764, SCREEN_H * 0.1404, 16, true);
+          }
         }
-      } else if (currentMode === 'actions') {
-        patchRegion(img, 0.43, 0.735, 0.14, 0.036, 0.732);
-        patchRegion(img, 0.43, 0.771, 0.14, 0.036, 0.805);
-        drawPlayGlyph(SCREEN_W * 0.502, SCREEN_H * 0.767, 94, isPlaying);
-      } else if (currentMode === 'widgets') {
-        // Mini-Player Play/Pause glyph (samples dark pill backdrop to its left)
-        patchRegion(img, 0.725, 0.842, 0.065, 0.044, 0.842);
-        sctx.drawImage(
-          img, img.width * 0.68, img.height * 0.842, img.width * 0.04, img.height * 0.044,
-          SCREEN_W * 0.725, SCREEN_H * 0.842, SCREEN_W * 0.065, SCREEN_H * 0.044
-        );
-        drawPlayGlyph(SCREEN_W * 0.755, SCREEN_H * 0.864, 42, isPlaying);
+      } else {
+        // Home / Explore / Library / Search: Liquid Glass Mini-Player bar (y=0.848..0.903)
+        patchVertical(img, 0.750, 0.854, 0.060, 0.042, 0.725);
+        drawPlayGlyph(SCREEN_W * 0.777, SCREEN_H * 0.8755, 48, isPlaying);
+
+        // If user skipped to Powerhouse x Disco, swap Mini-Player thumbnail + title/artist seamlessly
+        if (track.id === 'powerhouse') {
+          patchVertical(img, 0.172, 0.852, 0.565, 0.047, 0.725);
+          const altImg = loadedImages.get('playerAlt');
+          if (altImg) {
+            const tx = SCREEN_W * 0.064, ty = SCREEN_H * 0.855, tw = SCREEN_W * 0.090, th = SCREEN_H * 0.041;
+            sctx.save();
+            sctx.beginPath();
+            sctx.roundRect(tx, ty, tw, th, 14);
+            sctx.clip();
+            sctx.drawImage(altImg, altImg.width * 0.14, altImg.height * 0.12, altImg.width * 0.72, altImg.height * 0.33, tx, ty, tw, th);
+            sctx.restore();
+          }
+          sctx.save();
+          sctx.textAlign = 'left';
+          sctx.textBaseline = 'alphabetic';
+          sctx.fillStyle = '#ffffff';
+          sctx.font = '600 32px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+          sctx.fillText(track.title, SCREEN_W * 0.180, SCREEN_H * 0.872);
+          sctx.fillStyle = 'rgba(255,255,255,0.68)';
+          sctx.font = '400 25px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+          sctx.fillText(track.artist, SCREEN_W * 0.180, SCREEN_H * 0.889);
+          sctx.restore();
+        }
       }
 
       // Native Frosted Status Toast overlay for interactive feedback
       if (toastMessage && nowMs < toastUntil) {
         sctx.save();
-        sctx.font = '600 30px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
-        const tw = Math.min(SCREEN_W * 0.78, sctx.measureText(toastMessage).width + 72);
+        sctx.font = '600 28px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+        const tw = Math.min(SCREEN_W * 0.78, sctx.measureText(toastMessage).width + 68);
         const tx = (SCREEN_W - tw) / 2;
         const ty = SCREEN_H * 0.092;
-        sctx.fillStyle = 'rgba(24, 24, 30, 0.88)';
-        sctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+        sctx.fillStyle = 'rgba(24, 24, 30, 0.90)';
+        sctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
         sctx.lineWidth = 2;
-        sctx.beginPath(); sctx.roundRect(tx, ty, tw, 76, 38); sctx.fill(); sctx.stroke();
+        sctx.beginPath(); sctx.roundRect(tx, ty, tw, 72, 36); sctx.fill(); sctx.stroke();
         sctx.fillStyle = '#ffffff';
         sctx.textAlign = 'center';
         sctx.textBaseline = 'middle';
-        sctx.fillText(toastMessage, SCREEN_W / 2, ty + 39);
+        sctx.fillText(toastMessage, SCREEN_W / 2, ty + 37);
         sctx.restore();
       }
 
@@ -1753,10 +1876,11 @@
       currentMode = modeKey;
       phoneStage.dataset.mode = modeKey;
       phoneTabs.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === modeKey)));
-      if (loadedImages.has(modeKey)) {
+      const assetKey = getActiveAssetKey(modeKey);
+      if (loadedImages.has(assetKey)) {
         renderLiveScreen();
       } else {
-        loadScreenImage(modeKey).then(() => renderLiveScreen());
+        loadScreenImage(assetKey).then(() => renderLiveScreen());
       }
     }
 
@@ -2106,30 +2230,24 @@
     function isInteractiveHit(pt) {
       if (!pt) return false;
       const { x, y } = pt;
-      if (currentMode === 'player') {
+      if (currentMode === 'player' || currentMode === 'lyrics') {
         return (
-          (y > 0.70 && y < 0.82 && x > 0.18 && x < 0.84) || // Transport
+          (y > 0.70 && y < 0.82 && x > 0.14 && x < 0.86) || // Prev / Play / Next song
           (y > 0.625 && y < 0.668 && x > 0.05 && x < 0.95) || // Scrubber
-          (y > 0.52 && y < 0.59 && x > 0.71 && x < 0.94) || // Heart / More
-          (y > 0.59 && y < 0.635) || // Lyrics preview line
-          (y > 0.87 && y < 0.95 && x < 0.22) // Bottom quote button
+          (y > 0.52 && y < 0.59 && x > 0.70 && x < 0.94 && currentMode === 'player') || // Heart / More
+          (y > 0.10 && y < 0.18 && x > 0.70 && x < 0.94 && currentMode === 'lyrics') || // Lyrics Heart / Share
+          (y > 0.59 && y < 0.638) || // Lyrics line or BiniLyrics Change
+          (y > 0.87 && y < 0.95 && (x < 0.22 || x > 0.80)) || // Quote / Queue
+          (y > 0.06 && y < 0.14 && x > 0.35 && x < 0.65) // Grabber pill dismiss to Home
         );
       }
-      if (currentMode === 'lyrics') {
-        return (
-          (y > 0.71 && y < 0.83 && x > 0.18 && x < 0.84) ||
-          (y > 0.638 && y < 0.675 && x > 0.07 && x < 0.93) ||
-          (y > 0.08 && y < 0.16 && x > 0.72 && x < 0.85) ||
-          (y > 0.87 && y < 0.94 && x < 0.25)
-        );
-      }
-      if (currentMode === 'actions') {
-        return (x > 0.30 && y > 0.07 && y < 0.65) || (y > 0.71 && y < 0.83);
-      }
-      if (currentMode === 'widgets') {
-        return y > 0.82 && y < 0.90;
-      }
-      return false;
+      // Home / Explore / Library / Search: Liquid Glass Bottom Tabs, Mini-Player & rows/cards
+      return (
+        (y > 0.91 && y < 0.975) || // Bottom Tab Bar
+        (y > 0.844 && y < 0.908) || // Floating Mini-Player
+        (currentMode === 'home' && y > 0.23 && y < 0.75) ||
+        (currentMode === 'search' && y > 0.24 && y < 0.80)
+      );
     }
 
     canvas.addEventListener('pointerdown', (e) => {
@@ -2149,63 +2267,84 @@
 
       if (currentMode === 'player') {
         if (y > 0.70 && y < 0.82) {
-          if (x > 0.40 && x < 0.60) togglePlayback();
-          else if (x >= 0.18 && x <= 0.40) { currentSec = 0; renderLiveScreen(); showScreenToast('Restarted track'); }
-          else if (x >= 0.60 && x <= 0.84) { currentSec = Math.min(durationSec - 1, currentSec + 15); renderLiveScreen(); showScreenToast('Skipped +15s'); }
+          if (x > 0.39 && x < 0.61) togglePlayback();
+          else if (x >= 0.14 && x <= 0.39) switchTrack(-1);
+          else if (x >= 0.61 && x <= 0.86) switchTrack(1);
         } else if (y > 0.625 && y < 0.668 && x > 0.05 && x < 0.95) {
           currentSec = Math.round(Math.min(1, Math.max(0, (x - 0.069) / 0.862)) * durationSec);
           renderLiveScreen();
-        } else if (y > 0.52 && y < 0.59 && x > 0.71 && x < 0.82) {
+        } else if (y > 0.52 && y < 0.59 && x > 0.70 && x < 0.82) {
           isLiked = !isLiked;
           renderLiveScreen();
           showScreenToast(isLiked ? 'Added to Liked Songs' : 'Removed from Liked');
         } else if (y > 0.52 && y < 0.59 && x >= 0.82 && x < 0.95) {
-          setScreenMode('actions');
+          showScreenToast('FLAC · 24-bit · 48.0 kHz');
         } else if ((y > 0.59 && y < 0.635) || (y > 0.87 && y < 0.95 && x < 0.22)) {
           setScreenMode('lyrics');
+        } else if (y > 0.87 && y < 0.95 && x > 0.80) {
+          showScreenToast('Up Next · Queue');
+        } else if (y > 0.06 && y < 0.14 && x > 0.35 && x < 0.65) {
+          setScreenMode('home');
         }
       } else if (currentMode === 'lyrics') {
-        if (y > 0.71 && y < 0.83) {
-          if (x > 0.40 && x < 0.60) togglePlayback();
-          else if (x >= 0.18 && x <= 0.40) { currentSec = Math.max(0, currentSec - 10); renderLiveScreen(); }
-          else if (x >= 0.60 && x <= 0.84) { currentSec = Math.min(durationSec - 1, currentSec + 10); renderLiveScreen(); }
-        } else if (y > 0.638 && y < 0.675 && x > 0.07 && x < 0.93) {
-          currentSec = Math.round(Math.min(1, Math.max(0, (x - 0.088) / 0.824)) * durationSec);
+        if (y > 0.70 && y < 0.82) {
+          if (x > 0.39 && x < 0.61) togglePlayback();
+          else if (x >= 0.14 && x <= 0.39) switchTrack(-1);
+          else if (x >= 0.61 && x <= 0.86) switchTrack(1);
+        } else if (y > 0.625 && y < 0.668 && x > 0.05 && x < 0.95) {
+          const leftEdge = currentTrackIdx === 1 ? 0.088 : 0.069;
+          const trackSpan = currentTrackIdx === 1 ? 0.824 : 0.862;
+          currentSec = Math.round(Math.min(1, Math.max(0, (x - leftEdge) / trackSpan)) * durationSec);
           renderLiveScreen();
-        } else if (y > 0.08 && y < 0.16 && x > 0.72 && x < 0.85) {
+        } else if (y > 0.10 && y < 0.18 && x > 0.70 && x < 0.82) {
           isLiked = !isLiked;
           renderLiveScreen();
           showScreenToast(isLiked ? 'Added to Liked Songs' : 'Removed from Liked');
-        } else if (y > 0.87 && y < 0.94 && x < 0.25) {
+        } else if (y > 0.10 && y < 0.18 && x >= 0.82 && x < 0.94) {
+          showScreenToast('Share lyrics link copied');
+        } else if (y > 0.60 && y < 0.638 && x > 0.42 && x < 0.65) {
+          showScreenToast('BiniLyrics synced');
+        } else if (y > 0.87 && y < 0.95 && x < 0.24) {
           setScreenMode('player');
+        } else if (y > 0.06 && y < 0.105 && x > 0.35 && x < 0.65) {
+          setScreenMode('home');
         }
-      } else if (currentMode === 'actions') {
-        if (x > 0.30 && y > 0.07 && y < 0.65) {
-          const actions = [
-            [0.14, 'Lyrics Offset · 0.0s'],
-            [0.21, 'FLAC · 24-bit · 48.0 kHz'],
-            [0.27, 'Sleep timer · 15 min'],
-            [0.33, 'Share link copied'],
-            [0.39, 'Downloading FLAC…'],
-            [0.45, 'Hi-Res Lossless active'],
-            [0.52, 'Audio mode enabled'],
-            [0.58, 'Added to Playlist'],
-            [0.65, 'Updated preferences']
-          ];
-          const found = actions.find(([maxY]) => y <= maxY) || actions[actions.length - 1];
-          showScreenToast(found[1]);
-        } else if (y > 0.71 && y < 0.83 && x > 0.40 && x < 0.60) {
-          togglePlayback();
-        } else {
-          setScreenMode('player');
-        }
-      } else if (currentMode === 'widgets') {
-        if (y > 0.82 && y < 0.90) {
-          if (x > 0.70 && x < 0.83) togglePlayback();
-          else if (x >= 0.83) { currentSec = (currentSec + 15) % durationSec; showScreenToast('Next track'); }
+      } else {
+        // Home / Explore / Library / Search shared Liquid Glass Navigation & Mini-Player
+        if (y > 0.91 && y < 0.975) {
+          if (x < 0.285) setScreenMode('home');
+          else if (x < 0.50) setScreenMode('explore');
+          else if (x < 0.715) setScreenMode('library');
+          else setScreenMode('search');
+        } else if (y > 0.844 && y < 0.908) {
+          if (x > 0.725 && x < 0.835) togglePlayback();
+          else if (x >= 0.835) switchTrack(1);
           else setScreenMode('player');
-        } else if (y > 0.15 && y < 0.78) {
-          showScreenToast('BitChord Widget ready');
+        } else if (currentMode === 'home') {
+          if (y > 0.52 && y < 0.75) {
+            if (x > 0.30 && x < 0.65) {
+              setScreenMode('player');
+              switchTrack(0, 0, 'Now Playing');
+            } else if (x >= 0.65) {
+              showScreenToast('Queued · Pavazha Malli');
+            } else {
+              showScreenToast('Playing Alaakaa Loova');
+            }
+          } else if (y > 0.23 && y < 0.46) {
+            const recents = [[0.295, 'Aeroplane'], [0.355, 'Bindaas'], [0.41, 'Naanga Naalu Peru'], [0.46, 'O.M Special Duty']];
+            const found = recents.find(([my]) => y <= my) || recents[recents.length - 1];
+            showScreenToast(`Playing ${found[1]}`);
+          }
+        } else if (currentMode === 'search') {
+          if (y > 0.485 && y < 0.55) {
+            setScreenMode('player');
+            switchTrack(0, 0, 'Now Playing');
+          } else if (y >= 0.55 && y < 0.615) {
+            setScreenMode('player');
+            switchTrack(0, 1, 'Now Playing');
+          } else if (y > 0.24 && y < 0.80) {
+            showScreenToast('Opening track…');
+          }
         }
       }
     });
