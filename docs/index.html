@@ -1848,6 +1848,51 @@
         }
       }
 
+      // Aligned Dynamic Island / Live Activity pill matched seamlessly to 3D GLB cutout (0.0122..0.0515)
+      {
+        const iy = SCREEN_H * 0.0114, ih = SCREEN_H * 0.0410;
+        const ix = SCREEN_W * 0.278, iw = SCREEN_W * 0.436, ir = ih / 2;
+        sctx.save();
+        sctx.fillStyle = '#000000';
+        sctx.beginPath(); sctx.roundRect(ix, iy, iw, ih, ir); sctx.fill();
+
+        // Continuous outer glass border completely outside 3D cutout bounds (y=0.0098..0.0540) on dark tab views
+        if (currentMode !== 'player' && !(currentMode === 'lyrics' && currentTrackIdx === 0)) {
+          const gy = SCREEN_H * 0.0098, gh = SCREEN_H * 0.0442;
+          sctx.strokeStyle = 'rgba(255,255,255,0.16)';
+          sctx.lineWidth = 2.2;
+          sctx.beginPath(); sctx.roundRect(ix - 3, gy, iw + 6, gh, gh / 2); sctx.stroke();
+        }
+
+        // Left mini album art centered inside aligned capsule
+        const pad = 13, artSz = ih - pad * 2;
+        const artSrc = currentTrackIdx === 1 ? loadedImages.get('playerAlt') : loadedImages.get('player');
+        if (artSrc) {
+          sctx.save();
+          sctx.beginPath(); sctx.roundRect(ix + pad + 6, iy + pad, artSz, artSz, 14); sctx.clip();
+          if (currentTrackIdx === 1) {
+            sctx.drawImage(artSrc, artSrc.width * 0.18, artSrc.height * 0.12, artSrc.width * 0.64, artSrc.height * 0.30, ix + pad + 6, iy + pad, artSz, artSz);
+          } else {
+            sctx.drawImage(artSrc, artSrc.width * 0.289, artSrc.height * 0.020, artSrc.width * 0.058, artSrc.height * 0.027, ix + pad + 6, iy + pad, artSz, artSz);
+          }
+          sctx.restore();
+        }
+
+        // Right live waveform bars inside aligned capsule (animate while playing)
+        const wx = ix + iw - pad - 56, cy = iy + ih / 2;
+        const baseHeights = [14, 24, 34, 22, 16, 20];
+        sctx.fillStyle = currentTrackIdx === 1 ? '#ff375f' : 'rgba(255,255,255,0.90)';
+        for (let i = 0; i < baseHeights.length; i++) {
+          const bh = isPlaying
+            ? Math.round(10 + Math.abs(Math.sin(nowMs * 0.009 + i * 1.25)) * 26)
+            : Math.round(baseHeights[i] * 0.35);
+          sctx.beginPath();
+          sctx.roundRect(wx + i * 9, cy - bh / 2, 5, bh, 2.5);
+          sctx.fill();
+        }
+        sctx.restore();
+      }
+
       // Native Frosted Status Toast overlay for interactive feedback
       if (toastMessage && nowMs < toastUntil) {
         sctx.save();
@@ -2162,7 +2207,10 @@
             if (seenMats.has(m)) continue;
             seenMats.add(m);
 
-            if (!KEEP_DARK_MATS.has(m.name)) {
+            if (m.name === 'ujsvqBWRMnqdwPx') {
+              // Pure unlit OLED black inside 3D Dynamic Island so it blends seamlessly into Live Activity pill
+              obj.material = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            } else if (!KEEP_DARK_MATS.has(m.name)) {
               const role = m.name === LOGO_MAT_NAME
                 ? 'logo'
                 : BACK_GLASS_MATS.has(m.name)
