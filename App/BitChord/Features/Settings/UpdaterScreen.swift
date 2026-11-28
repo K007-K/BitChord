@@ -295,15 +295,31 @@ struct UpdaterScreen: View {
         }
         defer { try? handle.close() }
 
+        // Buffer in 256 KB chunks — avoids 44M single-byte disk writes that caused slow downloads
+        let chunkSize = 256 * 1024
+        var buffer = Data(capacity: chunkSize)
         var received = 0
+
         for try await byte in asyncBytes {
-            handle.write(Data([byte]))
+            buffer.append(byte)
             received += 1
+
+            if buffer.count >= chunkSize {
+                handle.write(buffer)
+                buffer.removeAll(keepingCapacity: true)
+            }
+
             if totalBytes > 0, received % 51200 == 0 {
                 let progress = Double(received) / Double(totalBytes)
                 await MainActor.run { state = .downloading(progress: min(progress, 0.99)) }
             }
         }
+
+        // Flush any remaining bytes
+        if !buffer.isEmpty {
+            handle.write(buffer)
+        }
+
         return destURL
     }
 
