@@ -251,11 +251,13 @@
 
     .mesh-bg {
       position: absolute;
-      inset: -32% -16% -12%;
+      inset: -32% -16% -8%;
       z-index: 0;
       pointer-events: none;
       filter: blur(95px);
       opacity: light-dark(0.32, 0.55);
+      -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
     }
 
     .mesh-orb {
@@ -526,8 +528,12 @@
       position: relative;
       z-index: 2;
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      align-items: center;
       justify-content: center;
+      max-width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
       gap: 3px;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -536,7 +542,13 @@
       backdrop-filter: blur(12px);
     }
 
+    .phone-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
     .phone-tab {
+      flex: none;
+      white-space: nowrap;
       border: none;
       background: transparent;
       padding: 5px 10px;
@@ -552,11 +564,38 @@
       color: var(--btn-primary-fg);
     }
 
+    @media (max-width: 920px) {
+      .hero {
+        padding: 78px 18px 40px;
+      }
+      .canvas-3d-wrap {
+        height: clamp(390px, 50vh, 500px);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hero-meta {
+        flex-direction: column;
+        gap: 4px;
+      }
+      .hero-meta > span:nth-child(2) {
+        display: none;
+      }
+      .phone-tab {
+        padding: 4px 8px;
+        font-size: 0.71rem;
+      }
+      .section {
+        padding: 56px 18px;
+      }
+    }
+
     /* Sections */
     .section {
       max-width: var(--max-width);
       margin: 0 auto;
       padding: 88px 24px;
+      scroll-margin-top: 72px;
     }
 
     .section-header {
@@ -1346,7 +1385,7 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <div>Maintained by Karthik (K007-K) &middot; &copy; 2025 BitChord &middot; 3D iPhone model by <a href="https://sketchfab.com/Polyman_3D" target="_blank" rel="noopener" style="text-decoration: underline;">Polyman_3D</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="text-decoration: underline;">CC BY 4.0</a>)</div>
+      <div>Maintained by Karthik (K007-K) &middot; &copy; 2026 BitChord &middot; 3D iPhone model by <a href="https://sketchfab.com/Polyman_3D" target="_blank" rel="noopener" style="text-decoration: underline;">Polyman_3D</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="text-decoration: underline;">CC BY 4.0</a>)</div>
       <div class="footer-links">
         <a href="https://github.com/K007-K/BitChord" target="_blank" rel="noopener">GitHub</a>
         <a href="https://github.com/K007-K/BitChord/releases" target="_blank" rel="noopener">iOS Releases</a>
@@ -1939,7 +1978,11 @@
       toastUntil = 0;
       currentMode = modeKey;
       phoneStage.dataset.mode = modeKey;
-      phoneTabs.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === modeKey)));
+      phoneTabs.forEach((b) => {
+        const selected = b.dataset.mode === modeKey;
+        b.setAttribute('aria-selected', String(selected));
+        b.tabIndex = selected ? 0 : -1;
+      });
       const assetKey = getActiveAssetKey(modeKey);
       if (loadedImages.has(assetKey)) {
         renderLiveScreen();
@@ -1998,6 +2041,8 @@
     controls.enableZoom = false;
     controls.enablePan = false;
     controls.rotateSpeed = 0.72;
+    // Restore pan-y so vertical mobile page scrolling isn't blocked by OrbitControls
+    controls.domElement.style.touchAction = 'pan-y';
 
     // Neutral crisp Apple studio lighting so White & Black Titanium render cleanly on all angles
     const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -2300,6 +2345,7 @@
           (y > 0.625 && y < 0.668 && x > 0.05 && x < 0.95) || // Scrubber
           (y > 0.52 && y < 0.59 && x > 0.70 && x < 0.94 && currentMode === 'player') || // Heart / More
           (y > 0.10 && y < 0.18 && x > 0.70 && x < 0.94 && currentMode === 'lyrics') || // Lyrics Heart / Share
+          (currentMode === 'lyrics' && y >= 0.21 && y <= 0.57 && x > 0.05 && x < 0.90) || // Tappable lyric lines
           (y > 0.59 && y < 0.638) || // Lyrics line or BiniLyrics Change
           (y > 0.87 && y < 0.95 && (x < 0.22 || x > 0.80)) || // Quote / Queue
           (y > 0.06 && y < 0.14 && x > 0.35 && x < 0.65) // Grabber pill dismiss to Home
@@ -2310,6 +2356,8 @@
         (y > 0.91 && y < 0.975) || // Bottom Tab Bar
         (y > 0.844 && y < 0.908) || // Floating Mini-Player
         (currentMode === 'home' && y > 0.23 && y < 0.75) ||
+        (currentMode === 'explore' && y > 0.22 && y < 0.84) ||
+        (currentMode === 'library' && y > 0.19 && y < 0.84) ||
         (currentMode === 'search' && y > 0.24 && y < 0.80)
       );
     }
@@ -2368,6 +2416,12 @@
           showScreenToast('Share lyrics link copied');
         } else if (y > 0.60 && y < 0.638 && x > 0.42 && x < 0.65) {
           showScreenToast('BiniLyrics synced');
+        } else if (y >= 0.21 && y <= 0.57 && x > 0.05 && x < 0.90) {
+          const lineFrac = Math.min(1, Math.max(0, (y - 0.21) / 0.36));
+          currentSec = Math.round((0.18 + lineFrac * 0.55) * durationSec);
+          isPlaying = true;
+          renderLiveScreen();
+          showScreenToast(`Synced lyric · ${fmtTime(currentSec)}`);
         } else if (y > 0.87 && y < 0.95 && x < 0.24) {
           setScreenMode('player');
         } else if (y > 0.06 && y < 0.105 && x > 0.35 && x < 0.65) {
@@ -2399,6 +2453,32 @@
             const found = recents.find(([my]) => y <= my) || recents[recents.length - 1];
             showScreenToast(`Playing ${found[1]}`);
           }
+        } else if (currentMode === 'explore') {
+          const col = x < 0.50 ? 0 : 1;
+          const moods = [
+            [0.335, ['Indian indie', 'Hip-hop']],
+            [0.455, ['Focus', 'Desi hip-hop']],
+            [0.575, ['Energize', 'Feel good']],
+            [0.755, ['Chill', 'Commute']],
+            [0.844, ['Energize', 'Feel good']]
+          ];
+          const found = moods.find(([my]) => y <= my);
+          if (found) showScreenToast(`Explore · ${found[1][col]}`);
+        } else if (currentMode === 'library') {
+          if (y > 0.19 && y < 0.38) {
+            if (x > 0.73) {
+              setScreenMode('player');
+              switchTrack(0, 0, 'Top Song');
+            } else {
+              showScreenToast('188 minutes · 63 plays');
+            }
+          } else if (y >= 0.42 && y < 0.68) {
+            const label = x < 0.38 ? 'Downloads' : x < 0.74 ? 'Local Music' : 'Offline';
+            showScreenToast(`Library · ${label}`);
+          } else if (y >= 0.72 && y < 0.844) {
+            const label = x < 0.36 ? 'New Playlist' : x < 0.74 ? 'Liked Music' : 'Mine Playlist';
+            showScreenToast(`Playlist · ${label}`);
+          }
         } else if (currentMode === 'search') {
           if (y > 0.485 && y < 0.55) {
             setScreenMode('player');
@@ -2413,8 +2493,21 @@
       }
     });
 
-    phoneTabs.forEach((btn) => {
+    phoneTabs.forEach((btn, idx) => {
+      btn.tabIndex = idx === 0 ? 0 : -1;
       btn.addEventListener('click', () => setScreenMode(btn.dataset.mode));
+      btn.addEventListener('keydown', (e) => {
+        let nextIdx = null;
+        if (e.key === 'ArrowRight') nextIdx = (idx + 1) % phoneTabs.length;
+        else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + phoneTabs.length) % phoneTabs.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = phoneTabs.length - 1;
+        if (nextIdx !== null) {
+          e.preventDefault();
+          phoneTabs[nextIdx].focus();
+          setScreenMode(phoneTabs[nextIdx].dataset.mode);
+        }
+      });
     });
 
     function resize3D() {
