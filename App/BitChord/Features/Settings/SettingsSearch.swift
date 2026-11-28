@@ -62,6 +62,8 @@ enum SettingsRowID: String, CaseIterable, Hashable {
     case playNextOnSwipe, dontRepeatSongs, hideVolumeBar, showQueueHistory, hideSongStatus
     // Language
     case appLanguage
+    // Widgets
+    case widgets
     // Advanced
     case smartVersionAlignment, showNerdStats, appIcon, keepDiagnosticLog, shareDiagnosticLog
 }
@@ -183,6 +185,9 @@ enum SettingsCatalog {
                 row(.workOutGenres, L10n.workOutGenres, "genre", "replay"),
                 row(.exportData, L10n.exportData, "backup"),
                 row(.importData, L10n.importData, "backup", "restore"),
+            ]),
+            SettingsGroupSpec(id: "widgets", header: "Widgets", rows: [
+                row(.widgets, "Widgets", "home screen", "lock screen", "dynamic island", "artwork", "glass", "minimal", "now playing"),
             ]),
             SettingsGroupSpec(id: "miscellaneous", header: L10n.miscellaneous, rows: [
                 row(.playNextOnSwipe, L10n.playNextOnSwipe, "swipe", "queue"),

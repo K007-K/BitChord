@@ -30,6 +30,7 @@ struct SettingsScreen: View {
     @State private var pickingDirectSourceStream = false
     @State private var pickingLanguage = false
     @State private var openingSpotifyCanvas = false
+    @State private var openingWidgets = false
     // What the last export or import did, shown on the row that did it rather than as a toast: a
     // backup is the one action here whose outcome nobody can check by looking at the app
     // afterwards. Held per direction, or an import's result reports itself under "Export".
@@ -93,6 +94,7 @@ struct SettingsScreen: View {
         .navigationTitle(L10n.settings)
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(isPresented: $openingSpotifyCanvas) { SpotifyCanvasSetupScreen() }
+        .navigationDestination(isPresented: $openingWidgets) { WidgetsScreen() }
         .task {
             for await status in app.network.statusUpdates() {
                 metered = status.isMetered
@@ -396,6 +398,11 @@ struct SettingsScreen: View {
             .buttonStyle(SettingsRowButtonStyle())
         case .appIcon:
             AppIconPickerRow()
+        case .widgets:
+            SettingsRow(symbol: "rectangle.3.group.fill", title: "Widgets",
+                        subtitle: "Home screen & Lock Screen widgets") {
+                openingWidgets = true
+            }
         }
     }
 
