@@ -533,6 +533,13 @@ final class AppModel {
             let nowPlayingSet = MPNowPlayingInfoCenter.default().nowPlayingInfo != nil
             let outputs = AVAudioSession.sharedInstance().currentRoute.outputs.prefix(4).map(\.portType.rawValue)
             TrackLog.i("Activation", "bundle=\(Bundle.main.bundleIdentifier ?? "?") top=\(top) np=\(nowPlayingSet) route=\(outputs)")
+
+            // If the app comes to the foreground with music playing (tapped from Dynamic Island,
+            // Control Center player, or Lock Screen media controls) open the full player so the
+            // user immediately lands on the Now Playing screen rather than whatever tab was last open.
+            if player.currentSong != nil {
+                router.handle(.player, player: player) { _ in nil }
+            }
         }
         if phase == .background {
             // Held open until the list is on disk: the process may be suspended a moment from now.
