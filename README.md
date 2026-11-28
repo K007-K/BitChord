@@ -9,6 +9,7 @@ Open-source YouTube Music client · Customizable widgets · In-app updates · Au
 
 <br>
 
+[![Website](https://img.shields.io/badge/website-bitchord--jade.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://bitchord-jade.vercel.app)
 [![Release](https://img.shields.io/github/v/release/K007-K/BitChord?style=for-the-badge&label=release&color=2F81F7)](https://github.com/K007-K/BitChord/releases/latest)
 [![License](https://img.shields.io/badge/license-GPL--3.0-E8743B?style=for-the-badge)](LICENSE)
 [![Platforms](https://img.shields.io/badge/iOS_17+-F5263F?style=for-the-badge)](#download)
@@ -17,7 +18,7 @@ Open-source YouTube Music client · Customizable widgets · In-app updates · Au
 [![WidgetKit](https://img.shields.io/badge/WidgetKit-0071E3?logo=apple&logoColor=white)](App/BitChordWidget)
 [![AppIntents](https://img.shields.io/badge/AppIntents-34C759?logo=apple&logoColor=white)](App/BitChord/Intents)
 
-**[Download](#download)** · **[Features](#features)** · **[Install](#install)** · **[Build from source](#build-from-source)** · **[Contributing](#contributing)** · **[Disclaimer](#disclaimer--legal-notice)**
+**[Website](https://bitchord-jade.vercel.app)** · **[Download](#download)** · **[Features](#features)** · **[Install](#install)** · **[Build from source](#build-from-source)** · **[Contributing](#contributing)** · **[Disclaimer](#disclaimer--legal-notice)**
 
 <br>
 

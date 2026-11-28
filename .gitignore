@@ -38,3 +38,6 @@ CLAUDE.md
 opencode.json
 .codex/
 .cursor/
+
+# Vercel
+.vercel
