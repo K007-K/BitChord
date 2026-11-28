@@ -579,10 +579,10 @@ private struct SettingsColophon: View {
 
     private static var text: AttributedString {
         let links: [(String, String)] = [
-            ("GitHub", "https://github.com/kushagrasinghx/BitChord"),
-            ("Developer", "https://github.com/kushagrasinghx"),
+            ("GitHub", "https://github.com/K007-K/BitChord"),
+            ("Developer", "https://github.com/K007-K"),
             ("Discord", "https://discord.gg/pDdKfrdHY6"),
-            ("Website", "https://bitchord.kushagrasingh.in/"),
+            ("Website", "https://k007-k.github.io/BitChord/"),
         ]
         var result = AttributedString("bitchord \(SettingsBackup.appVersion)")
         for (label, url) in links {
