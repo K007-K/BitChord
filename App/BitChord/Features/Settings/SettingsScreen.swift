@@ -32,6 +32,7 @@ struct SettingsScreen: View {
     @State private var openingSpotifyCanvas = false
     @State private var openingWidgets = false
     @State private var openingUpdater = false
+    @State private var openingDriveBackup = false
     // What the last export or import did, shown on the row that did it rather than as a toast: a
     // backup is the one action here whose outcome nobody can check by looking at the app
     // afterwards. Held per direction, or an import's result reports itself under "Export".
@@ -100,6 +101,7 @@ struct SettingsScreen: View {
         .navigationDestination(isPresented: $openingSpotifyCanvas) { SpotifyCanvasSetupScreen() }
         .navigationDestination(isPresented: $openingWidgets) { WidgetsScreen() }
         .navigationDestination(isPresented: $openingUpdater) { UpdaterScreen() }
+        .navigationDestination(isPresented: $openingDriveBackup) { DriveBackupScreen() }
         .task {
             for await status in app.network.statusUpdates() {
                 metered = status.isMetered
@@ -346,6 +348,11 @@ struct SettingsScreen: View {
                 }
             }
 
+        case .googleDriveBackup:
+            SettingsRow(symbol: "icloud.and.arrow.up", title: "Google Drive Backup",
+                        subtitle: DriveBackupManager.shared.accountEmail ?? "Sync Replay across Android & iOS") {
+                openingDriveBackup = true
+            }
         case .replay:
             SettingsRow(symbol: "chart.bar.fill", title: L10n.replay, subtitle: L10n.replaySubtitle) {
                 router.open(.replay)

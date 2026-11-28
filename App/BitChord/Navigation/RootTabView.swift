@@ -55,6 +55,13 @@ struct RootTabView: View {
             // top bar's batch indicator reads it only after that.
             try? await Task.sleep(for: .seconds(2.5))
             downloadsReady = true
+            let net = model.network.status
+            if net.isOnline {
+                DriveBackupManager.shared.syncIfDueOnLaunch(
+                    stats: model.replayStats,
+                    isMetered: net.isMetered == true
+                )
+            }
         }
         #if DEBUG
         .task { openAccountDebugTarget() }

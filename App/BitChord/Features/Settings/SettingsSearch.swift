@@ -57,7 +57,7 @@ enum SettingsRowID: String, CaseIterable, Hashable {
     // Storage
     case songCacheLimit, clearSongCache, clearImageCache
     // Your data
-    case replay, workOutGenres, exportData, importData
+    case googleDriveBackup, replay, workOutGenres, exportData, importData
     // Miscellaneous
     case playNextOnSwipe, dontRepeatSongs, hideVolumeBar, showQueueHistory, hideSongStatus
     // Language
@@ -183,6 +183,7 @@ enum SettingsCatalog {
                 row(.clearImageCache, L10n.clearImageCache, "cache", "artwork", "free space"),
             ]),
             SettingsGroupSpec(id: "yourData", header: L10n.yourData, rows: [
+                row(.googleDriveBackup, "Google Drive Backup", "google", "drive", "cloud", "backup", "sync", "replay"),
                 row(.replay, L10n.replay, "stats", "history", "wrapped"),
                 row(.workOutGenres, L10n.workOutGenres, "genre", "replay"),
                 row(.exportData, L10n.exportData, "backup"),

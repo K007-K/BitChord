@@ -57,6 +57,10 @@ public final class ReplayListeningStats: ReplayListeningSink, @unchecked Sendabl
         .applicationSupport("Replay/Listening")
     }
 
+    public static func standardPeerDirectory() -> URL {
+        JSONFileStore.applicationSupport("Replay/Peers").directory
+    }
+
     private final class OpenBucket {
         let key: String
         var tracks: [String: ReplayTrackEntry] = [:]
@@ -137,6 +141,7 @@ public final class ReplayListeningStats: ReplayListeningSink, @unchecked Sendabl
     }
 
     private let store: JSONFileStore
+    private let peerDirectory: URL?
     private let facts: (any ReplayArtistFactsReading)?
     private let now: () -> Date
     private let calendar: Calendar
@@ -147,6 +152,7 @@ public final class ReplayListeningStats: ReplayListeningSink, @unchecked Sendabl
     private var cached: Cached?
 
     /// - `store`: where `YYYY-MM.json` buckets live. Tests point this at a temporary directory.
+    /// - `peerDirectory`: optional directory for synced peer-device monthly buckets.
     /// - `facts`: artist pictures/pages/genres. Nil in tests that don't cover them.
     /// - `now`/`calendar`: the clock and time zone. Tests fix both for determinism. Only the time
     ///   zone is taken: months, days and hours are Gregorian like Android's java.time, so a
@@ -154,11 +160,13 @@ public final class ReplayListeningStats: ReplayListeningSink, @unchecked Sendabl
     ///   platform's backups.
     public init(
         store: JSONFileStore,
+        peerDirectory: URL? = nil,
         facts: (any ReplayArtistFactsReading)? = nil,
         now: @escaping () -> Date = { Date() },
         calendar: Calendar = .current
     ) {
         self.store = store
+        self.peerDirectory = peerDirectory
         self.facts = facts
         self.now = now
         var gregorian = Calendar(identifier: .gregorian)
@@ -207,7 +215,12 @@ public final class ReplayListeningStats: ReplayListeningSink, @unchecked Sendabl
         facts: (any ReplayArtistFactsReading)? = nil,
         calendar: Calendar = .current
     ) -> ReplayListeningStats {
-        ReplayListeningStats(store: standardListeningStore(), facts: facts, calendar: calendar)
+        ReplayListeningStats(
+            store: standardListeningStore(),
+            peerDirectory: standardPeerDirectory(),
+            facts: facts,
+            calendar: calendar
+        )
     }
 
     // MARK: Writing
@@ -401,6 +414,9 @@ public final class ReplayListeningStats: ReplayListeningSink, @unchecked Sendabl
         for month in months() where period.covers(monthKey: month.key, today: todayMonth) {
             if let bucket = read(month.key) { merger.add(bucket) }
         }
+        for bucket in peerBuckets(for: period, today: todayMonth) {
+            merger.add(bucket)
+        }
         let summary = merger.toSummary(period: period, label: period.label(today: today, calendar: calendar), facts: facts)
         let currentVersion = lock.withLock { version }
         lock.withLock { cached = Cached(period: period, version: currentVersion, facts: factsRevision, day: dayKey, summary: summary) }
@@ -514,6 +530,62 @@ public final class ReplayListeningStats: ReplayListeningSink, @unchecked Sendabl
             for name in (try? store.fileNames()) ?? [] where !written.contains(name) {
                 try? store.remove(name)
             }
+        }
+    }
+
+    // MARK: Peer Devices (Cloud Sync)
+
+    /// Replaces cached monthly buckets from synced peer devices without touching local months.
+    public func replacePeerMonths(_ monthsByDevice: [String: [ReplayStoredBucket]]) {
+        guard let peerDirectory else { return }
+        lock.withLock {
+            version += 1
+            cached = nil
+            let fm = FileManager.default
+            try? fm.removeItem(at: peerDirectory)
+            guard !monthsByDevice.isEmpty else { return }
+            let encoder = JSONFileStore.makeEncoder()
+            do {
+                try fm.createDirectory(at: peerDirectory, withIntermediateDirectories: true)
+                for (deviceId, buckets) in monthsByDevice {
+                    let safeId = deviceId.replacingOccurrences(of: "/", with: "_")
+                        .replacingOccurrences(of: "..", with: "_")
+                    guard !safeId.isEmpty else { continue }
+                    let deviceDir = peerDirectory.appending(path: safeId, directoryHint: .isDirectory)
+                    try fm.createDirectory(at: deviceDir, withIntermediateDirectories: true)
+                    for bucket in buckets where ReplayMonth(key: bucket.month) != nil {
+                        let data = try encoder.encode(bucket)
+                        try data.write(to: deviceDir.appending(path: "\(bucket.month).json", directoryHint: .notDirectory), options: .atomic)
+                    }
+                }
+            } catch {
+                // Best-effort peer cache write; retried on next sync.
+            }
+        }
+    }
+
+    private func peerBuckets(for period: ReplayPeriod, today: ReplayMonth) -> [ReplayStoredBucket] {
+        guard let peerDirectory else { return [] }
+        return lock.withLock {
+            let fm = FileManager.default
+            guard let deviceDirs = try? fm.contentsOfDirectory(
+                at: peerDirectory,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            ) else { return [] }
+            let decoder = JSONFileStore.makeDecoder()
+            var result: [ReplayStoredBucket] = []
+            for dir in deviceDirs {
+                guard let files = try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else { continue }
+                for file in files where file.pathExtension == "json" {
+                    guard let month = ReplayMonth(fileName: file.lastPathComponent),
+                          period.covers(monthKey: month.key, today: today),
+                          let data = try? Data(contentsOf: file),
+                          let bucket = try? decoder.decode(ReplayStoredBucket.self, from: data) else { continue }
+                    result.append(bucket)
+                }
+            }
+            return result
         }
     }
 }
