@@ -2,10 +2,10 @@
 
 <img src=".github/assets/icon.png" alt="BitChord app icon" width="112" height="112">
 
-# BitChord for iOS
+# BitChord for iPhone
 
-**An open-source, native YouTube Music client for iPhone and iPad.**<br>
-Customizable widgets, in-app updates, Automix, Hi-Res and sideload-friendly.
+**An unofficial native iPhone port of [BitChord](https://github.com/kushagrasinghx/BitChord) by [Kushagra Singh](https://github.com/kushagrasinghx).**<br>
+Open-source YouTube Music client · Customizable widgets · In-app updates · Automix · Hi-Res · eSign-friendly.
 
 <br>
 
@@ -21,10 +21,14 @@ Customizable widgets, in-app updates, Automix, Hi-Res and sideload-friendly.
 
 <br>
 
+<img src=".github/assets/banner.jpg" alt="BitChord on iPhone — Now Playing, Lyrics and Artist view" width="900">
+
+<br>
+
 </div>
 
 > [!IMPORTANT]
-> BitChord is an unofficial Apple-platform build maintained by [K007-K](https://github.com/K007-K), based on the iOS port by [maanya145](https://github.com/maanya145/BitChord-iOS). It is not affiliated with, endorsed by, or connected to YouTube or Google in any way. Use it at your own discretion.
+> This is an unofficial iPhone port of [BitChord](https://github.com/kushagrasinghx/BitChord) by [Kushagra Singh](https://github.com/kushagrasinghx), maintained by [K007-K](https://github.com/K007-K), based on the iOS port by [maanya145](https://github.com/maanya145/BitChord-iOS). It is not affiliated with, endorsed by, or connected to YouTube or Google in any way. Use it at your own discretion.
 
 ## Download
 
