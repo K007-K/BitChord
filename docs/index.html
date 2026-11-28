@@ -113,10 +113,16 @@
       left: 0;
       right: 0;
       z-index: 100;
+      background: transparent;
+      border-bottom: none;
+      transition: background-color 0.25s ease, box-shadow 0.25s ease, backdrop-filter 0.25s ease;
+    }
+
+    .nav.scrolled {
       background: var(--nav-bg);
       backdrop-filter: blur(22px) saturate(180%);
       -webkit-backdrop-filter: blur(22px) saturate(180%);
-      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 0 var(--border);
     }
 
     .nav-inner {
@@ -239,13 +245,13 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 108px 24px 72px;
+      padding: 86px 24px 48px;
       overflow: hidden;
     }
 
     .mesh-bg {
       position: absolute;
-      inset: -18%;
+      inset: -32% -16% -12%;
       z-index: 0;
       pointer-events: none;
       filter: blur(95px);
@@ -308,9 +314,9 @@
       width: 100%;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1.12fr 0.88fr;
+      grid-template-columns: 1.15fr 0.85fr;
       align-items: center;
-      gap: 56px;
+      gap: 36px;
     }
 
     @media (max-width: 920px) {
@@ -381,8 +387,8 @@
     .cta-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 24px;
+      gap: 10px;
+      margin-bottom: 22px;
     }
 
     @media (max-width: 920px) {
@@ -394,12 +400,13 @@
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 9px;
-      padding: 13px 22px;
+      gap: 8px;
+      padding: 11px 17px;
       border-radius: var(--radius-pill);
-      font-size: 0.92rem;
+      font-size: 0.86rem;
       font-weight: 600;
       letter-spacing: -0.01em;
+      white-space: nowrap;
       transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     }
 
@@ -472,7 +479,7 @@
       z-index: 1;
       width: 100%;
       max-width: 440px;
-      height: 560px;
+      height: clamp(500px, 65vh, 610px);
       display: grid;
       place-items: center;
     }
@@ -511,81 +518,7 @@
       flex-wrap: wrap;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-    }
-
-    .finish-swatches {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 6px 10px;
-      border-radius: var(--radius-pill);
-      backdrop-filter: blur(12px);
-    }
-
-    .swatch-btn {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 1.5px solid var(--border-strong);
-      background: var(--swatch);
-      padding: 0;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .swatch-btn[aria-pressed="true"] {
-      transform: scale(1.15);
-      box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--text-primary);
-    }
-
-    .reset-view-btn {
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text-secondary);
-      padding: 5px 11px;
-      border-radius: var(--radius-pill);
-      font-size: 0.75rem;
-      font-weight: 500;
-      backdrop-filter: blur(12px);
-    }
-
-    .reset-view-btn:hover {
-      color: var(--text-primary);
-      background: var(--surface-hover);
-    }
-
-    .play-pill-btn {
-      border: 1px solid var(--border-strong);
-      background: var(--surface);
-      color: var(--text-primary);
-      padding: 5px 12px;
-      border-radius: var(--radius-pill);
-      font-size: 0.76rem;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      backdrop-filter: blur(12px);
-      transition: background-color 0.2s ease, transform 0.2s ease;
-    }
-
-    .play-pill-btn:hover {
-      background: var(--surface-hover);
-    }
-
-    .play-pill-btn[aria-pressed="true"] {
-      background: var(--btn-primary-bg);
-      color: var(--btn-primary-fg);
-      border-color: transparent;
-    }
-
-    .drag-hint {
-      position: relative;
-      z-index: 2;
-      font-size: 0.74rem;
-      color: var(--text-muted);
+      gap: 10px;
     }
 
     /* Phone Mode Switcher Tabs */
@@ -750,6 +683,18 @@
       color: var(--text-primary);
     }
 
+    .mini-pill.hires-pill {
+      border-color: rgba(255, 200, 90, 0.55);
+      box-shadow: 0 0 18px rgba(255, 198, 88, 0.28);
+      background: light-dark(rgba(255, 248, 232, 0.9), rgba(255, 200, 90, 0.12));
+      color: light-dark(#9a6700, #ffe08a);
+      font-weight: 600;
+    }
+
+    a.mini-pill.hires-pill:hover {
+      box-shadow: 0 0 24px rgba(255, 198, 88, 0.44);
+    }
+
     /* Install Guide Tabs (following modern-web-guidance tabs pattern) */
     .install-shell {
       background: var(--bg-elevated);
@@ -874,11 +819,11 @@
     /* Credits & Contributions */
     .credits-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
 
-    @media (max-width: 780px) {
+    @media (max-width: 940px) {
       .credits-grid {
         grid-template-columns: 1fr;
       }
@@ -901,19 +846,20 @@
 
     .credit-header {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
     }
 
     .credit-role {
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 600;
       padding: 4px 10px;
       border-radius: var(--radius-pill);
       background: var(--bg-subtle);
       border: 1px solid var(--border);
       color: var(--text-secondary);
+      white-space: nowrap;
     }
 
     .credit-card.highlight .credit-role {
@@ -1078,7 +1024,7 @@
           <h1 class="hero-title">BitChord</h1>
           <p class="hero-tagline">Your music. Your way.</p>
           <p class="hero-subtitle">
-            A native YouTube Music experience for iOS featuring Hi-Res FLAC playback, cross-platform Listen Together parties, intelligent AutoMix, synced lyrics, iOS Widgets, and Google Drive backup.
+            A native YouTube Music experience for iOS featuring Hi-Res Lossless FLAC streaming via addons in our official Discord, Listen Together parties, intelligent AutoMix, synced lyrics, iOS Widgets, and Google Drive backup.
           </p>
 
           <div class="cta-group">
@@ -1095,7 +1041,7 @@
           <div class="hero-meta">
             <span>Maintained by <strong>Karthik (K007-K)</strong></span>
             <span>&middot;</span>
-            <span>Original by <strong>kushagrasinghx</strong>, <strong>bagumamartin</strong> &amp; <strong>maanya145</strong></span>
+            <span>Original by <strong>kushagrasinghx</strong> &amp; <strong>maanya145</strong></span>
           </div>
         </div>
 
@@ -1114,16 +1060,7 @@
               <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="library">Library</button>
               <button type="button" class="phone-tab" role="tab" aria-selected="false" data-mode="search">Search</button>
             </div>
-
-            <div class="finish-swatches" role="group" aria-label="Titanium finish">
-              <button type="button" class="swatch-btn" style="--swatch:#3b3c40" data-finish="black" data-color="#3B3C40" aria-pressed="false" aria-label="Black Titanium"></button>
-              <button type="button" class="swatch-btn" style="--swatch:#dfded9" data-finish="white" data-color="#DFDED9" aria-pressed="true" aria-label="White Titanium"></button>
-            </div>
-
-            <button type="button" class="play-pill-btn" id="play-toggle-btn" aria-pressed="true">&#10074;&#10074; Pause</button>
-            <button type="button" class="reset-view-btn" id="reset-3d-view">Reset View</button>
           </div>
-          <p class="drag-hint">Tap Play, Skip Song, Scrubber, Heart, or Bottom Tabs directly on the 3D screen &middot; Drag to rotate 360&deg;</p>
         </div>
       </div>
     </section>
@@ -1145,14 +1082,14 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
             </div>
             <h3>Hi-Res Lossless &amp; Audio Engine</h3>
-            <p>Stream FLAC up to 24-bit / 48 kHz+ with automatic quality upgrades, parametric Equalizer, Spatial Audio routing, and live codec/bitrate telemetry.</p>
+            <p>Stream FLAC up to 24-bit / 48 kHz+ using Hi-Res Lossless addons available in our <a href="https://discord.gg/pDdKfrdHY6" target="_blank" rel="noopener" style="color: var(--accent-blue); text-decoration: underline;">official Discord group</a>, paired with automatic quality upgrades, parametric Equalizer, Spatial Audio routing, and live codec telemetry.</p>
           </div>
           <div class="bento-visual">
             <div class="pill-list">
-              <span class="mini-pill">FLAC 24-bit / 48 kHz</span>
+              <span class="mini-pill hires-pill">Hi-Res Lossless · FLAC 24-bit / 48 kHz</span>
+              <a href="https://discord.gg/pDdKfrdHY6" target="_blank" rel="noopener" class="mini-pill hires-pill">Addons in Official Discord &rarr;</a>
               <span class="mini-pill">Parametric EQ</span>
               <span class="mini-pill">Spatial Audio</span>
-              <span class="mini-pill">BestPart Pill</span>
             </div>
           </div>
         </article>
@@ -1395,17 +1332,6 @@
 
         <article class="credit-card reveal">
           <div class="credit-header">
-            <h3>Martin Baguma (bagumamartin)</h3>
-            <span class="credit-role">Upstream iOS Port</span>
-          </div>
-          <p>
-            Built the upstream Kotlin Multiplatform + Swift iOS codebase, native audio engine integration, and cross-platform playback core.
-          </p>
-          <a href="https://github.com/bagumamartin/BitChord" target="_blank" rel="noopener" class="credit-link">github.com/bagumamartin/BitChord &rarr;</a>
-        </article>
-
-        <article class="credit-card reveal">
-          <div class="credit-header">
             <h3>Maanya (maanya145)</h3>
             <span class="credit-role">Apple-Native UI &amp; BitChordKit</span>
           </div>
@@ -1432,6 +1358,12 @@
   </footer>
 
   <script>
+    // 0. Seamless Transparent Top Navbar until Scrolled
+    const topNav = document.querySelector('.nav');
+    const syncNavScroll = () => topNav && topNav.classList.toggle('scrolled', window.scrollY > 18);
+    window.addEventListener('scroll', syncNavScroll, { passive: true });
+    syncNavScroll();
+
     // 1. Dark/Light Theme Toggle (per modern-web-guidance dark-mode-toggle)
     const themeMeta = document.querySelector('meta[name="color-scheme"]');
     const themeBtn = document.getElementById('theme-toggle');
@@ -1548,9 +1480,6 @@
     const loaderEl = document.getElementById('glb-loader');
     const phoneStage = document.getElementById('phone-stage');
     const phoneTabs = Array.from(document.querySelectorAll('.phone-tab'));
-    const swatchBtns = Array.from(document.querySelectorAll('.swatch-btn'));
-    const playToggleBtn = document.getElementById('play-toggle-btn');
-    const resetBtn = document.getElementById('reset-3d-view');
 
     const SCREEN_ASSETS = {
       player: { url: 'assets/screen-player-raga.webp' },
@@ -1710,8 +1639,6 @@
       currentSec = 4;
       isLiked = Boolean(nextTrack.liked);
       isPlaying = true;
-      playToggleBtn.setAttribute('aria-pressed', 'true');
-      playToggleBtn.innerHTML = '&#10074;&#10074; Pause';
 
       const msg = `${toastPrefix || (delta < 0 ? 'Previous' : 'Next')}: ${nextTrack.title}`;
       const assetKey = getActiveAssetKey();
@@ -1720,6 +1647,93 @@
       } else {
         loadScreenImage(assetKey).then(() => showScreenToast(msg));
       }
+    }
+
+    // Left-to-right smooth scrolling marquee for composer & singer names
+    function drawArtistMarquee(img, text, nowMs) {
+      patchRegion(img, 0.060, 0.558, 0.615, 0.026, 0.587);
+      const clipX = SCREEN_W * 0.068;
+      const clipW = SCREEN_W * 0.595;
+      const clipY = SCREEN_H * 0.555;
+      const clipH = SCREEN_H * 0.032;
+      const baseY = SCREEN_H * 0.576;
+
+      sctx.save();
+      sctx.beginPath();
+      sctx.rect(clipX, clipY, clipW, clipH);
+      sctx.clip();
+
+      sctx.font = '400 42px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+      sctx.textAlign = 'left';
+      sctx.textBaseline = 'alphabetic';
+
+      const tw = sctx.measureText(text).width;
+      const gap = 84;
+      const period = tw + gap;
+      const shift = isPlaying ? ((nowMs * 0.055) % period) : 0;
+
+      // Directional horizontal gradient with soft left & right fade at box edges
+      const edgeFade = sctx.createLinearGradient(clipX, 0, clipX + clipW, 0);
+      edgeFade.addColorStop(0, 'rgba(255,255,255,0.18)');
+      edgeFade.addColorStop(0.06, 'rgba(255,255,255,0.78)');
+      edgeFade.addColorStop(0.92, 'rgba(255,255,255,0.78)');
+      edgeFade.addColorStop(1, 'rgba(255,255,255,0.12)');
+      sctx.fillStyle = edgeFade;
+
+      if (isPlaying) {
+        const xA = clipX + shift;
+        sctx.fillText(text, xA, baseY);
+        sctx.fillText(text, xA - period, baseY);
+      } else {
+        sctx.fillText(text, clipX, baseY);
+      }
+      sctx.restore();
+    }
+
+    // Radiant glowing + sweeping shimmer Hi-Res Lossless quality badge
+    function drawHiResBadge(img, cyBaseline, nowMs) {
+      patchRegion(img, 0.34, 0.654, 0.32, 0.021, 0.680);
+      const cx = SCREEN_W * 0.506;
+      const label = 'Hi-Res Lossless';
+      const pulse = 0.5 + 0.5 * Math.sin(nowMs * 0.004);
+      const sweep = ((nowMs % 2800) / 2800);
+
+      sctx.save();
+      sctx.font = '600 26px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
+      const tw = sctx.measureText(label).width;
+      const iconGap = 32;
+      const totalW = tw + iconGap;
+      const startX = cx - totalW / 2;
+
+      // Ambient warm-white radiant glow behind icon and label
+      sctx.shadowColor = `rgba(255, 218, 128, ${0.65 + pulse * 0.35})`;
+      sctx.shadowBlur = 18 + pulse * 10;
+
+      // Sweep highlight gradient across text & headphone icon
+      const gradX0 = startX - totalW * 0.4 + sweep * (totalW * 1.8);
+      const grad = sctx.createLinearGradient(gradX0 - 60, 0, gradX0 + 60, 0);
+      grad.addColorStop(0, 'rgba(255, 224, 152, 0.85)');
+      grad.addColorStop(0.5, '#ffffff');
+      grad.addColorStop(1, 'rgba(255, 224, 152, 0.85)');
+
+      // Crisp headphones glyph
+      const hx = startX + 12;
+      const hy = cyBaseline - 7;
+      sctx.strokeStyle = grad;
+      sctx.fillStyle = grad;
+      sctx.lineWidth = 2.6;
+      sctx.beginPath();
+      sctx.arc(hx, hy, 9, Math.PI, 0, false);
+      sctx.stroke();
+      sctx.beginPath();
+      sctx.roundRect(hx - 11.5, hy - 1, 5, 10, 2);
+      sctx.roundRect(hx + 6.5, hy - 1, 5, 10, 2);
+      sctx.fill();
+
+      sctx.textAlign = 'left';
+      sctx.textBaseline = 'alphabetic';
+      sctx.fillText(label, startX + iconGap, cyBaseline);
+      sctx.restore();
     }
 
     function renderLiveScreen(nowMs = performance.now()) {
@@ -1733,6 +1747,9 @@
       const progress = Math.min(1, Math.max(0, currentSec / durationSec));
 
       if (currentMode === 'player') {
+        // Left-to-right moving artist / composer credits
+        drawArtistMarquee(img, track.artist, nowMs);
+
         // Patch Play/Pause button area (sample clean gradient right above & below)
         const topPatch = currentTrackIdx === 1 ? 0.722 : 0.732;
         patchRegion(img, 0.43, 0.725, 0.14, 0.036, topPatch);
@@ -1750,7 +1767,7 @@
         sctx.beginPath(); sctx.roundRect(sx, sy - 5, Math.max(12, sw * progress), 10, 5); sctx.fill();
         sctx.beginPath(); sctx.arc(sx + sw * progress, sy, 13, 0, Math.PI * 2); sctx.fill();
 
-        // Live Elapsed & Remaining Timecodes aligned with Hi-Res Lossless badge
+        // Live Elapsed, Glowing Hi-Res Lossless Badge & Remaining Timecodes
         patchRegion(img, 0.055, 0.655, 0.14, 0.018, 0.680);
         patchRegion(img, 0.805, 0.655, 0.14, 0.018, 0.680);
         sctx.font = '500 26px -apple-system, BlinkMacSystemFont, Inter, sans-serif';
@@ -1758,6 +1775,7 @@
         sctx.textBaseline = 'alphabetic';
         sctx.textAlign = 'left'; sctx.fillText(fmtTime(currentSec), sx, SCREEN_H * 0.6685);
         sctx.textAlign = 'right'; sctx.fillText('-' + fmtTime(durationSec - currentSec), sx + sw, SCREEN_H * 0.6685);
+        drawHiResBadge(img, SCREEN_H * 0.6685, nowMs);
 
         // Heart overlay inside circular button when toggled ON
         if (isLiked) {
@@ -1810,6 +1828,7 @@
           sctx.textBaseline = 'alphabetic';
           sctx.textAlign = 'left'; sctx.fillText(fmtTime(currentSec), sx, SCREEN_H * 0.6685);
           sctx.textAlign = 'right'; sctx.fillText('-' + fmtTime(durationSec - currentSec), sx + sw, SCREEN_H * 0.6685);
+          drawHiResBadge(img, SCREEN_H * 0.6685, nowMs);
 
           if (isLiked) {
             sctx.fillStyle = 'rgba(255,255,255,0.16)';
@@ -1931,8 +1950,6 @@
 
     function togglePlayback() {
       isPlaying = !isPlaying;
-      playToggleBtn.setAttribute('aria-pressed', String(isPlaying));
-      playToggleBtn.innerHTML = isPlaying ? '&#10074;&#10074; Pause' : '&#9654; Play';
       renderLiveScreen();
     }
 
@@ -2150,7 +2167,6 @@
     }
 
     function selectFinish(finishKey) {
-      swatchBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.finish === finishKey)));
       applyFinish(finishKey);
     }
 
@@ -2401,18 +2417,6 @@
       btn.addEventListener('click', () => setScreenMode(btn.dataset.mode));
     });
 
-    playToggleBtn.addEventListener('click', togglePlayback);
-
-    swatchBtns.forEach((btn) => {
-      btn.addEventListener('click', () => selectFinish(btn.dataset.finish));
-    });
-
-    resetBtn.addEventListener('click', () => {
-      camera.position.copy(DEFAULT_CAM_POS);
-      controls.target.set(0, 0, 0);
-      controls.update();
-    });
-
     function resize3D() {
       const wrap = canvas.parentElement;
       const w = wrap.clientWidth;
@@ -2439,7 +2443,7 @@
           currentSec = (currentSec + dt) % durationSec;
           lastTick = now;
         }
-        if (now - lastDraw > 120) {
+        if (now - lastDraw > 33) {
           lastDraw = now;
           renderLiveScreen(now);
         }
